@@ -126,7 +126,7 @@ Examples:
 # Just save something — no flags needed
 yaad add "kubectl rollout restart deployment/api"
 
-# A command you want to resume later
+# A something you want to remember for later
 yaad add "claude --resume 17a43487-5ce9-4fd3-a9b5-b099d335f644" \
   --for "yaad build session"
 
