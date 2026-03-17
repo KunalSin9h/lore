@@ -149,6 +149,10 @@ func (s *MemoryService) Delete(ctx context.Context, id string) error {
 	return s.store.Delete(ctx, id)
 }
 
+func (s *MemoryService) Clean(ctx context.Context) (int64, error) {
+	return s.store.DeleteAll(ctx)
+}
+
 func newID() string {
 	return ulid.Make().String()
 }

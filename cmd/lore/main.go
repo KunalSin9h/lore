@@ -85,7 +85,7 @@ Examples:
 
 			aiClient := ollama.New(ollamaURL, embedModel, chatModel)
 
-			notif := notifier.NewCLI()
+			notif := buildNotifier(resolve(cmd, "notifier", rc, "notifier", "cli"))
 
 			memorySvc = app.NewMemoryService(db.Store, aiClient, timeparser.New())
 			reminderSvc = app.NewReminderService(db.Store, notif)
@@ -97,6 +97,7 @@ Examples:
 	root.PersistentFlags().String("ollama-url", "", "Ollama server URL (overrides rc file)")
 	root.PersistentFlags().String("chat-model", "", "Chat model to use (overrides rc file)")
 	root.PersistentFlags().String("embed-model", "", "Embedding model to use (overrides rc file)")
+	root.PersistentFlags().String("notifier", "", "Notifier adapter: cli|notify-send (overrides rc file)")
 
 	root.AddCommand(
 		addCmd(&memorySvc, &db),
@@ -104,6 +105,7 @@ Examples:
 		listCmd(&memorySvc),
 		getCmd(&memorySvc),
 		deleteCmd(&memorySvc),
+		cleanCmd(&memorySvc),
 		checkCmd(&reminderSvc),
 		daemonCmd(&reminderSvc, rc),
 		configCmd(rc, rcPath),
@@ -261,6 +263,37 @@ func deleteCmd(svc **app.MemoryService) *cobra.Command {
 				return err
 			}
 			fmt.Printf("deleted %s\n", shortID(args[0]))
+			return nil
+		},
+	}
+
+	cmd.Flags().BoolVarP(&force, "force", "y", false, "Skip confirmation prompt")
+	return cmd
+}
+
+// --- clean ---
+
+func cleanCmd(svc **app.MemoryService) *cobra.Command {
+	var force bool
+
+	cmd := &cobra.Command{
+		Use:   "clean",
+		Short: "Delete all memories",
+		RunE: func(cmd *cobra.Command, args []string) error {
+			if !force {
+				fmt.Print("delete ALL memories? this cannot be undone. [y/N] ")
+				var ans string
+				fmt.Scanln(&ans) //nolint:errcheck
+				if strings.ToLower(strings.TrimSpace(ans)) != "y" {
+					fmt.Println("cancelled")
+					return nil
+				}
+			}
+			n, err := (*svc).Clean(context.Background())
+			if err != nil {
+				return err
+			}
+			fmt.Printf("deleted %d memories\n", n)
 			return nil
 		},
 	}
@@ -491,6 +524,24 @@ func relTime(t time.Time) string {
 		return "in " + s
 	}
 	return s + " ago"
+}
+
+// buildNotifier parses a comma-separated list of notifier names and returns
+// a Multi notifier that fans out to all of them.
+func buildNotifier(cfg string) ports.NotifierPort {
+	var ns []ports.NotifierPort
+	for name := range strings.SplitSeq(cfg, ",") {
+		switch strings.TrimSpace(name) {
+		case "notify-send":
+			ns = append(ns, notifier.NewNotifySend())
+		default: // "cli" or anything unrecognised
+			ns = append(ns, notifier.NewCLI())
+		}
+	}
+	if len(ns) == 0 {
+		ns = append(ns, notifier.NewCLI())
+	}
+	return notifier.NewMulti(ns...)
 }
 
 func dataDirectory() (string, error) {

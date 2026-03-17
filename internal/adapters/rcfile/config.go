@@ -35,6 +35,11 @@ ollama.chat_model    = llama3.2:3b
 
 # How often the reminder daemon polls for due reminders.
 reminder.poll_interval = 30s
+
+# Notifier adapters to use for reminders (comma-separated, all fire together).
+# cli         — prints a styled box to the terminal (default, no dependencies)
+# notify-send — desktop notification via notify-send (Linux, must be installed)
+notifier = cli
 `
 
 // Compile-time interface check.

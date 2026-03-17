@@ -127,6 +127,15 @@ func (s *Store) Delete(ctx context.Context, id string) error {
 	return nil
 }
 
+func (s *Store) DeleteAll(ctx context.Context) (int64, error) {
+	res, err := s.db.ExecContext(ctx, "DELETE FROM memories")
+	if err != nil {
+		return 0, err
+	}
+	n, _ := res.RowsAffected()
+	return n, nil
+}
+
 // FindSimilar loads all embeddings from the DB, computes cosine similarity
 // in-process, and returns the top-k most similar memories.
 // Fine for personal scale (< 100k entries). Swap the adapter for chromadb etc.

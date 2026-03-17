@@ -14,6 +14,7 @@ type StoragePort interface {
 	GetByID(ctx context.Context, id string) (*domain.Memory, error)
 	List(ctx context.Context, filter domain.ListFilter) ([]*domain.Memory, error)
 	Delete(ctx context.Context, id string) error
+	DeleteAll(ctx context.Context) (int64, error)
 	FindSimilar(ctx context.Context, embedding []float32, topK int) ([]*domain.Memory, error)
 	PendingReminders(ctx context.Context, before time.Time) ([]*domain.Memory, error)
 	MarkReminded(ctx context.Context, id string) error

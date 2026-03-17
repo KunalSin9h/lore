@@ -46,14 +46,14 @@ func (c *CLI) Notify(_ context.Context, m *domain.Memory) error {
 
 	bar := strings.Repeat("─", width+2)
 	fmt.Println()
-	fmt.Printf(ansiYellow+"  ┌"+bar+"┐"+ansiReset+"\n")
-	fmt.Printf(ansiYellow+"  │ "+ansiReset+ansiBold+"%-*s"+ansiReset+ansiYellow+" │"+ansiReset+"\n", width, "lore · reminder")
+	fmt.Print(ansiYellow + "  ┌" + bar + "┐" + ansiReset + "\n")
+	fmt.Printf("%s  │ %s%s%-*s%s%s │%s\n", ansiYellow, ansiReset, ansiBold, width, "lore · reminder", ansiReset, ansiYellow, ansiReset)
 	fmt.Printf("%s  │ %s%-*s%s │%s\n", ansiYellow, ansiReset, width, "", ansiYellow, ansiReset)
 	for _, l := range lines {
 		pad := width - visibleLen(l)
 		fmt.Printf("%s  │ %s%s%s%s │%s\n", ansiYellow, ansiReset, l, strings.Repeat(" ", pad), ansiYellow, ansiReset)
 	}
-	fmt.Printf(ansiYellow+"  └"+bar+"┘"+ansiReset+"\n")
+	fmt.Print(ansiYellow + "  └" + bar + "┘" + ansiReset + "\n")
 	fmt.Println()
 	return nil
 }
