@@ -50,7 +50,6 @@ yaad ask "do I have anything due tonight?"
 
 ## Requirements
 
-- [Go](https://go.dev) 1.21+
 - [Ollama](https://ollama.com) running locally
 
 Pull the required models once:
@@ -78,7 +77,7 @@ go install github.com/kunalsin9h/yaad/cmd/yaad@latest
 
 **Pre-built binaries** — download from [GitHub Releases](https://github.com/KunalSin9h/yaad/releases).
 
-**Build from source:**
+**Build from source** (requires [Go](https://go.dev) 1.21+):
 
 ```bash
 git clone https://github.com/kunalsin9h/yaad
