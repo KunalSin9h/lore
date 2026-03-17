@@ -836,7 +836,7 @@
 <span class="c"># chat / reasoning model (swap for any compatible one)</span>
 <span class="k">ollama pull</span> llama3.2:3b
 <span class="c"># optional: cross-encoder reranker for higher recall quality</span>
-<span class="k">ollama pull</span> dengcao/Qwen3-Reranker-0.6B</pre>
+<span class="k">ollama pull</span> dengcao/Qwen3-Reranker-0.6B:Q8_0</pre>
         </div>
       </div>
       <div class="step">
@@ -921,7 +921,7 @@ yaad clean                  <span class="c"># delete all</span></pre>
         <p>Manage <code>~/.yaadrc</code>. Override Ollama URL, models, notifier, and reminder poll interval.</p>
         <pre style="margin-top:.75rem;font-size:.75rem">yaad config init
 yaad config set ollama.chat_model llama3.2:3b
-yaad config set ollama.rerank_model dengcao/Qwen3-Reranker-0.6B
+yaad config set ollama.rerank_model dengcao/Qwen3-Reranker-0.6B:Q8_0
 yaad config list</pre>
       </div>
     </div>

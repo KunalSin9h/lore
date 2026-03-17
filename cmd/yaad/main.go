@@ -98,7 +98,7 @@ Examples:
 	root.PersistentFlags().String("ollama-url", "", "Ollama server URL (overrides rc file)")
 	root.PersistentFlags().String("chat-model", "", "Chat model to use (overrides rc file)")
 	root.PersistentFlags().String("embed-model", "", "Embedding model to use (overrides rc file)")
-	root.PersistentFlags().String("rerank-model", "", "Rerank model for cross-encoder reranking, e.g. dengcao/Qwen3-Reranker-0.6B (overrides rc file)")
+	root.PersistentFlags().String("rerank-model", "", "Rerank model for cross-encoder reranking, e.g. dengcao/Qwen3-Reranker-0.6B:Q8_0 (overrides rc file)")
 	root.PersistentFlags().String("notifier", "", "Notifier adapter: cli|notify-send (overrides rc file)")
 
 	root.AddCommand(
@@ -382,11 +382,8 @@ func configCmd(rc *rcfile.Config, rcPath string) *cobra.Command {
 				fmt.Printf("created %s\n", rcPath)
 				fmt.Println("edit it with your preferred text editor to configure yaad.")
 				fmt.Println()
-				fmt.Println("tip: yaad can remind you about memories. run `yaad daemon` (or add it to your shell) to enable reminders.")
-				fmt.Println("     learn more: https://github.com/KunalSin9h/yaad?tab=readme-ov-file#reminders")
-				fmt.Println()
-				fmt.Println("to start the daemon automatically, add this to your ~/.bashrc:")
-				fmt.Println(`  echo "" >> ~/.bashrc && echo "yaad daemon &" >> ~/.bashrc`)
+				fmt.Println("tip: set up reminders to never miss a reminder.")
+				fmt.Println("     https://github.com/KunalSin9h/yaad/blob/main/REMINDERS.md")
 				return nil
 			},
 		},

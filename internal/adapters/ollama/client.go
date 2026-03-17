@@ -36,7 +36,7 @@ func New(baseURL, embedModel, chatModel string) *Client {
 }
 
 // WithRerankModel configures an optional Qwen3-Reranker model for cross-encoder
-// reranking. Example: "dengcao/Qwen3-Reranker-0.6B".
+// reranking. Example: "dengcao/Qwen3-Reranker-0.6B:Q8_0".
 // When empty, Rerank() is a no-op that returns candidates in original order.
 func (c *Client) WithRerankModel(model string) *Client {
 	c.rerankModel = model

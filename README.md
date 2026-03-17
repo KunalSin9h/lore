@@ -43,7 +43,7 @@ ollama pull nomic-embed-text          # embeddings
 ollama pull llama3.2:3b               # reasoning
 
 # optional: cross-encoder reranking
-ollama pull dengcao/Qwen3-Reranker-0.6B
+ollama pull dengcao/Qwen3-Reranker-0.6B:Q8_0
 ```
 
 ---
@@ -67,7 +67,7 @@ cd yaad && make install
 
 ```bash
 yaad config init                                                  # create ~/.yaadrc
-yaad config set ollama.rerank_model dengcao/Qwen3-Reranker-0.6B  # optional
+yaad config set ollama.rerank_model dengcao/Qwen3-Reranker-0.6B:Q8_0  # optional
 yaad config list
 ```
 

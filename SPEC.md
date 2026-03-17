@@ -160,7 +160,7 @@ PROMPT_COMMAND="yaad check; $PROMPT_COMMAND"
 yaad config set ollama.url http://localhost:11434
 yaad config set ollama.embed_model nomic-embed-text
 yaad config set ollama.chat_model llama3.2:3b
-yaad config set ollama.rerank_model dengcao/Qwen3-Reranker-0.6B
+yaad config set ollama.rerank_model dengcao/Qwen3-Reranker-0.6B:Q8_0
 yaad config get ollama.url
 yaad config list
 yaad config init   # generate ~/.yaadrc with commented defaults
@@ -336,7 +336,7 @@ Before embedding the user's question, `ExpandQuery()` asks the LLM to write a sh
 
 After hybrid retrieval returns a pool of ~10 candidates, an optional cross-encoder re-scores each `(query, candidate)` pair:
 
-- **Model**: `dengcao/Qwen3-Reranker-0.6B` (or `4B`, `8B`) via Ollama
+- **Model**: `dengcao/Qwen3-Reranker-0.6B:Q8_0` (or `4B`, `8B`) via Ollama
 - **How it works**: unlike bi-encoder embeddings that score query and document independently, a cross-encoder processes both together — enabling nuanced contextual relevance judgment
 - **API**: uses `/api/chat` with a structured yes/no judgment prompt; candidates are sorted descending by "yes" confidence
 - **Config**: `ollama.rerank_model` in `~/.yaadrc` (empty = disabled, which is the default)

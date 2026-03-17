@@ -19,7 +19,7 @@ const DefaultConfig = `# yaad configuration
 # Reference: https://github.com/KunalSin9h/yaad
 #
 # Flag equivalents override these values per-invocation:
-#   --ollama-url   --chat-model   --embed-model
+#   --ollama-url   --chat-model   --embed-model   --rerank-model
 
 # Ollama server
 ollama.url           = http://localhost:11434
@@ -32,6 +32,11 @@ ollama.embed_model   = nomic-embed-text
 # Any chat-capable Ollama model works. Smaller = faster.
 # Recommended: llama3.2:3b, mistral, gemma2:2b, phi3
 ollama.chat_model    = llama3.2:3b
+
+# (Optional) Cross-encoder reranking model. Empty = disabled (default).
+# When set, re-scores retrieval candidates for higher precision.
+# Requires: ollama pull dengcao/Qwen3-Reranker-0.6B:Q8_0
+# ollama.rerank_model = dengcao/Qwen3-Reranker-0.6B:Q8_0
 
 # How often the reminder daemon polls for due reminders.
 reminder.poll_interval = 30s
