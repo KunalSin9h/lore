@@ -1,4 +1,4 @@
-lore
+## lore
 
 > An AI-native terminal memory and reminder system, powered by Ollama.
 
