@@ -720,7 +720,7 @@
       installation
     </span>
     <h2>Up and running in minutes.</h2>
-    <p class="section-lead">Requires Go 1.21+ and Ollama running locally.</p>
+    <p class="section-lead">Requires Ollama running locally.</p>
 
     <div class="install-steps">
       <div class="step">
@@ -752,7 +752,7 @@
         <div class="step-num">4</div>
         <div class="step-body">
           <h4>Save your first memory</h4>
-          <pre>yaad add <span class="s">"hello world"</span> <span class="k">--for</span> <span class="s">"my first yaad memory"</span></pre>
+          <pre>yaad add <span class="s">"staging db is postgres on port 5433"</span></pre>
         </div>
       </div>
     </div>
@@ -771,28 +771,46 @@
 
     <div class="commands-grid">
       <div class="cmd-card">
-        <div class="cmd-name">yaad add "&lt;content&gt;" [flags]</div>
-        <p>Save a memory. Use <code>--for</code> for context, <code>--remind</code> for a deadline, <code>--tag</code> for labels.</p>
+        <div class="cmd-name">yaad add</div>
+        <p>Save anything. <code>--for</code> adds a label, <code>--remind</code> sets a deadline, <code>--tag</code> for filtering later.</p>
+        <pre style="margin-top:.75rem;font-size:.75rem">yaad add <span class="s">"staging db port is 5433"</span>
+yaad add <span class="s">"submit PR"</span> <span class="k">--remind</span> <span class="s">"tomorrow 9am"</span>
+yaad add <span class="s">"https://api.docs.com"</span> <span class="k">--tag</span> reference
+yaad add <span class="s">"ssh -i ~/.ssh/id_rsa user@prod"</span> <span class="k">--for</span> <span class="s">"prod login"</span></pre>
       </div>
       <div class="cmd-card">
-        <div class="cmd-name">yaad ask "&lt;question&gt;"</div>
-        <p>Query everything with natural language. The LLM reasons over semantic search results.</p>
+        <div class="cmd-name">yaad ask</div>
+        <p>Query in plain English. LLM reasons over semantic search results to give a direct answer.</p>
+        <pre style="margin-top:.75rem;font-size:.75rem">yaad ask <span class="s">"what is the staging db port?"</span>
+yaad ask <span class="s">"do I have anything due today?"</span>
+yaad ask <span class="s">"how do I log into prod?"</span></pre>
       </div>
       <div class="cmd-card">
-        <div class="cmd-name">yaad list [flags]</div>
-        <p>Browse recent memories. Filter by <code>--type</code>, <code>--tag</code>, or <code>--remind</code>.</p>
+        <div class="cmd-name">yaad list</div>
+        <p>Browse recent memories. Filter by type, tag, or show only pending reminders.</p>
+        <pre style="margin-top:.75rem;font-size:.75rem">yaad list
+yaad list <span class="k">--type</span> reminder
+yaad list <span class="k">--tag</span> staging
+yaad list <span class="k">--remind</span>          <span class="c"># only due reminders</span></pre>
       </div>
       <div class="cmd-card">
         <div class="cmd-name">yaad get &lt;id&gt;</div>
-        <p>Show full details of a memory. Accepts a 10-char ULID prefix.</p>
+        <p>Show full details — content, type, tags, working dir, hostname, created time. Accepts 10-char ULID prefix.</p>
+        <pre style="margin-top:.75rem;font-size:.75rem">yaad get 01JTXK4A3B</pre>
       </div>
       <div class="cmd-card">
-        <div class="cmd-name">yaad delete &lt;id&gt;</div>
-        <p>Remove a memory by ID. Prompts for confirmation; skip with <code>-y</code>.</p>
+        <div class="cmd-name">yaad delete / clean</div>
+        <p>Remove one memory by ID, or wipe everything at once. Both prompt for confirmation; skip with <code>-y</code>.</p>
+        <pre style="margin-top:.75rem;font-size:.75rem">yaad delete 01JTXK4A3B
+yaad delete 01JTXK4A3B <span class="k">-y</span>   <span class="c"># skip prompt</span>
+yaad clean                  <span class="c"># delete all</span></pre>
       </div>
       <div class="cmd-card">
-        <div class="cmd-name">yaad config init / set / get</div>
-        <p>Manage <code>~/.yaadrc</code>. Override Ollama URL, models, notifier, and poll interval.</p>
+        <div class="cmd-name">yaad config</div>
+        <p>Manage <code>~/.yaadrc</code>. Override Ollama URL, models, notifier, and reminder poll interval.</p>
+        <pre style="margin-top:.75rem;font-size:.75rem">yaad config init
+yaad config set ollama.chat_model llama3.2:3b
+yaad config list</pre>
       </div>
     </div>
 
