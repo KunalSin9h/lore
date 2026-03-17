@@ -83,17 +83,18 @@
 
     /* ─── HERO ─── */
     .hero {
-      max-width: 1000px; margin: 0 auto;
+      max-width: 1200px; margin: 0 auto;
       padding: 3rem 2rem 4rem;
       text-align: center;
       position: relative;
     }
     .hero-bg {
       position: absolute; inset: 0;
-      background-image: radial-gradient(circle, rgba(46,43,38,.55) 1px, transparent 1px);
+      background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='32' height='32'%3E%3Cpath d='M16 13v6M13 16h6' stroke='%232e2b26' stroke-width='1'/%3E%3C/svg%3E");
       background-size: 32px 32px;
       pointer-events: none;
-      mask-image: radial-gradient(ellipse 90% 80% at 50% 20%, black 20%, transparent 100%);
+      mask-image: radial-gradient(ellipse 90% 85% at 50% 40%, black 0%, transparent 80%);
+      opacity: .7;
     }
     .hero-glow {
       position: absolute;
@@ -105,7 +106,31 @@
         radial-gradient(ellipse 40% 60% at 50% 10%, rgba(251,191,36,.04) 0%, transparent 70%);
       pointer-events: none;
     }
-    .hero > * { position: relative; }
+    .hero-scanlines {
+      position: absolute; inset: 0;
+      background: repeating-linear-gradient(
+        0deg,
+        transparent,
+        transparent 3px,
+        rgba(255,255,255,.012) 3px,
+        rgba(255,255,255,.012) 4px
+      );
+      pointer-events: none;
+      mask-image: radial-gradient(ellipse 100% 100% at 50% 50%, black 40%, transparent 100%);
+    }
+    .hero-corner {
+      position: absolute;
+      width: 22px; height: 22px;
+      pointer-events: none;
+      z-index: 1;
+    }
+    .hero-corner.tl { top: 1.25rem; left: 1.25rem; border-top: 1px solid var(--border2); border-left:  1px solid var(--border2); }
+    .hero-corner.tr { top: 1.25rem; right: 1.25rem; border-top: 1px solid var(--border2); border-right: 1px solid var(--border2); }
+    .hero-corner.bl { bottom: 1.25rem; left: 1.25rem;  border-bottom: 1px solid var(--border2); border-left:  1px solid var(--border2); }
+    .hero-corner.br { bottom: 1.25rem; right: 1.25rem; border-bottom: 1px solid var(--border2); border-right: 1px solid var(--border2); }
+.hero > * { position: relative; }
+    .hero-bg, .hero-scanlines, .hero-glow,
+    .hero-corner { position: absolute; }
 
     .hero-art {
       display: flex;
@@ -243,6 +268,17 @@
     .marquee-item .sep { color: var(--border2); }
 
     /* ─── TERMINAL ─── */
+    .hero-terminals {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 1.25rem;
+      max-width: 1100px;
+      margin: 0 auto;
+      text-align: left;
+    }
+    @media (max-width: 720px) {
+      .hero-terminals { grid-template-columns: 1fr; }
+    }
     .terminal {
       background: var(--bg2);
       border: 1px solid var(--border);
@@ -251,6 +287,20 @@
       max-width: 680px;
       margin: 0 auto;
       box-shadow: 0 32px 64px rgba(0,0,0,.5), 0 0 0 1px var(--border);
+    }
+    .hero-terminals .terminal {
+      max-width: none;
+      margin: 0;
+    }
+    .terminal-body pre.notif-box {
+      background: none;
+      border: none;
+      padding: 0;
+      font-size: inherit;
+      line-height: inherit;
+      color: inherit;
+      margin: 0;
+      overflow: visible;
     }
     .terminal-bar {
       display: flex; align-items: center; gap: .45rem;
@@ -546,6 +596,14 @@
 
 <!-- ─── HERO ─── -->
 <section class="hero">
+  <div class="hero-bg"></div>
+  <div class="hero-glow"></div>
+  <div class="hero-scanlines"></div>
+  <div class="hero-corner tl"></div>
+  <div class="hero-corner tr"></div>
+  <div class="hero-corner bl"></div>
+  <div class="hero-corner br"></div>
+
   <div class="hero-pill">
     <!-- Ollama logo -->
     <img src="https://ollama.com/public/ollama.png"/>
@@ -565,27 +623,55 @@
     </a>
   </div>
 
-  <div class="terminal">
-    <div class="terminal-bar">
-      <div class="tb-dot tb-r"></div>
-      <div class="tb-dot tb-y"></div>
-      <div class="tb-dot tb-g"></div>
-      <span class="terminal-title">~/dev — zsh</span>
+  <div class="hero-terminals">
+    <!-- LEFT: memory & recall -->
+    <div class="terminal">
+      <div class="terminal-bar">
+        <div class="tb-dot tb-r"></div>
+        <div class="tb-dot tb-y"></div>
+        <div class="tb-dot tb-g"></div>
+        <span class="terminal-title">memory — zsh</span>
+      </div>
+      <div class="terminal-body">
+        <div class="t-out"><span style="color:var(--dim)">── save once ────────────────────────</span></div>
+        <div><span class="t-prompt">❯ </span><span class="t-cmd">yaad add </span><span class="t-str">"claude session for db migration: 3fa2c891-7b4e....."</span></div>
+        <div class="t-out">  saved &nbsp;[fact]</div>
+        <span class="t-blank"></span>
+        <div><span class="t-prompt">❯ </span><span class="t-cmd">yaad add </span><span class="t-str">"prod needs VPN + bastion-01.internal"</span></div>
+        <div class="t-out">  saved &nbsp;[note]</div>
+        <span class="t-blank"></span>
+        <div class="t-out"><span style="color:var(--dim)">── recall anytime ───────────────────</span></div>
+        <div><span class="t-prompt">❯ </span><span class="t-cmd">yaad ask </span><span class="t-str">"claude session for db migration?"</span></div>
+        <div class="t-ans">  3fa2c891-7b4e-4d1a-9f3c-2e8b5a6d0c19</div>
+      </div>
     </div>
-    <div class="terminal-body">
-      <div class="t-out">  <span style="color:var(--dim)">── save things you can't memorise ───────────</span></div>
-      <div><span class="t-prompt">❯ </span><span class="t-cmd">yaad add </span><span class="t-str">"claude session id for db migration is 3fa2c891-7b4e....."</span></div>
-      <div class="t-out">  ✓ saved &nbsp;[fact]</div>
-      <span class="t-blank"></span>
-      <div><span class="t-prompt">❯ </span><span class="t-cmd">yaad add </span><span class="t-str">"do some situps"</span> <span class="t-flag">--remind</span> <span class="t-str">"in 10 minutes"</span></div>
-      <div class="t-out">  ✓ saved &nbsp;[reminder] &nbsp;due in 10 minutes</div>
-      <span class="t-blank"></span>
-      <div><span class="t-prompt">❯ </span><span class="t-cmd">yaad add </span><span class="t-str">"prod deploy needs VPN + sudo on bastion-01.internal"</span></div>
-      <div class="t-out">  ✓ saved &nbsp;[note]</div>
-      <span class="t-blank"></span>
-      <div class="t-out">  <span style="color:var(--dim)">── recall with plain english, weeks later ───</span></div>
-      <div><span class="t-prompt">❯ </span><span class="t-cmd">yaad ask </span><span class="t-str">"claude session id for db migration?"</span></div>
-      <div class="t-ans">  3fa2c891-7b4e-4d1a-9f3c-2e8b5a6d0c19</div>
+
+    <!-- RIGHT: reminder fires while you work -->
+    <div class="terminal">
+      <div class="terminal-bar">
+        <div class="tb-dot tb-r"></div>
+        <div class="tb-dot tb-y"></div>
+        <div class="tb-dot tb-g"></div>
+        <span class="terminal-title">where you work — zsh</span>
+      </div>
+      <div class="terminal-body">
+        <div class="t-out"><span style="color:var(--dim)">── you set a reminder earlier ────────</span></div>
+        <div><span class="t-prompt">❯ </span><span class="t-cmd">yaad add </span><span class="t-str">"do some situps"</span> <span class="t-flag">--remind</span> <span class="t-str">"in 10 minutes"</span></div>
+        <div class="t-out">  saved &nbsp;[reminder] &nbsp;due in 10 minutes</div>
+        <span class="t-blank"></span>
+        <div class="t-out"><span style="color:var(--dim)">── 10 minutes later, mid-work ────────</span></div>
+        <div><span class="t-prompt">❯ </span><span class="t-cmd">git push origin main</span></div>
+        <div class="t-out">  Everything up-to-date</div>
+        <span class="t-blank"></span>
+        <pre class="notif-box"><span style="color:var(--amber)">  ┌──────────────────────┐
+  │</span> <strong>yaad · reminder</strong>       <span style="color:var(--amber)">│
+  │</span>                      <span style="color:var(--amber)">│
+  │</span> do some situps       <span style="color:var(--amber)">│
+  │</span> <span class="t-out">due: in a moment</span>     <span style="color:var(--amber)">│
+  └──────────────────────┘</span></pre>
+        <span class="t-blank"></span>
+        <div><span class="t-prompt">❯ </span><span class="t-out" style="opacity:.35">▌</span></div>
+      </div>
     </div>
   </div>
 </section>
@@ -756,6 +842,10 @@
         </div>
       </div>
     </div>
+
+    <p style="margin-top:2.5rem;font-size:.95rem;color:var(--muted);">
+      Also <a href="#reminders">set up reminders</a> — it's yaad's most powerful feature and takes 30 seconds.
+    </p>
   </div>
 </section>
 
