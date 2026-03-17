@@ -1,0 +1,561 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>yaad — AI-native terminal memory</title>
+  <meta name="description" content="Save anything from your terminal and recall it later with natural language. Everything runs locally. No cloud, no accounts." />
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    :root {
+      --bg:        #0c0c0e;
+      --bg2:       #111114;
+      --bg3:       #18181d;
+      --border:    #242429;
+      --text:      #e2e2e8;
+      --muted:     #7a7a8a;
+      --green:     #4ade80;
+      --cyan:      #22d3ee;
+      --purple:    #a78bfa;
+      --orange:    #fb923c;
+      --red:       #f87171;
+      --radius:    8px;
+    }
+
+    html { scroll-behavior: smooth; }
+
+    body {
+      background: var(--bg);
+      color: var(--text);
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+      font-size: 16px;
+      line-height: 1.6;
+    }
+
+    a { color: var(--cyan); text-decoration: none; }
+    a:hover { text-decoration: underline; }
+
+    /* ─── NAV ─── */
+    nav {
+      position: sticky; top: 0; z-index: 100;
+      display: flex; align-items: center; justify-content: space-between;
+      padding: 0 2rem;
+      height: 56px;
+      background: rgba(12,12,14,.85);
+      backdrop-filter: blur(12px);
+      border-bottom: 1px solid var(--border);
+    }
+    .nav-logo {
+      font-family: "SF Mono", "Fira Code", monospace;
+      font-size: 1.2rem;
+      font-weight: 700;
+      color: var(--green);
+      letter-spacing: -.5px;
+    }
+    .nav-logo span { color: var(--muted); font-weight: 400; }
+    .nav-links { display: flex; gap: 1.5rem; font-size: .9rem; color: var(--muted); }
+    .nav-links a { color: var(--muted); }
+    .nav-links a:hover { color: var(--text); text-decoration: none; }
+    .nav-gh {
+      display: flex; align-items: center; gap: .4rem;
+      padding: .35rem .85rem;
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      font-size: .85rem;
+      color: var(--text);
+      background: var(--bg3);
+      transition: border-color .15s;
+    }
+    .nav-gh:hover { border-color: var(--muted); text-decoration: none; }
+
+    /* ─── HERO ─── */
+    .hero {
+      max-width: 860px; margin: 0 auto;
+      padding: 6rem 2rem 4rem;
+      text-align: center;
+    }
+    .hero-badge {
+      display: inline-flex; align-items: center; gap: .5rem;
+      padding: .3rem .9rem;
+      border: 1px solid var(--border);
+      border-radius: 999px;
+      font-size: .8rem; color: var(--muted);
+      margin-bottom: 1.5rem;
+      background: var(--bg3);
+    }
+    .hero-badge .dot { width: 6px; height: 6px; border-radius: 50%; background: var(--green); }
+    h1 {
+      font-size: clamp(2.2rem, 5vw, 3.4rem);
+      font-weight: 800;
+      line-height: 1.15;
+      letter-spacing: -.03em;
+      margin-bottom: 1.25rem;
+    }
+    h1 em { font-style: normal; color: var(--green); }
+    .hero-sub {
+      font-size: 1.15rem; color: var(--muted);
+      max-width: 560px; margin: 0 auto 2.5rem;
+      line-height: 1.7;
+    }
+    .hero-actions {
+      display: flex; gap: 1rem; justify-content: center; flex-wrap: wrap;
+      margin-bottom: 3.5rem;
+    }
+    .btn-primary {
+      padding: .65rem 1.4rem;
+      background: var(--green);
+      color: #0c0c0e;
+      font-weight: 700; font-size: .95rem;
+      border-radius: var(--radius);
+      transition: opacity .15s;
+    }
+    .btn-primary:hover { opacity: .85; text-decoration: none; }
+    .btn-ghost {
+      padding: .65rem 1.4rem;
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      font-size: .95rem; color: var(--text);
+      background: var(--bg3);
+      transition: border-color .15s;
+    }
+    .btn-ghost:hover { border-color: var(--muted); text-decoration: none; }
+
+    /* ─── TERMINAL ─── */
+    .terminal {
+      background: var(--bg3);
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      overflow: hidden;
+      text-align: left;
+      max-width: 700px;
+      margin: 0 auto;
+      box-shadow: 0 24px 64px rgba(0,0,0,.4);
+    }
+    .terminal-bar {
+      display: flex; align-items: center; gap: .45rem;
+      padding: .75rem 1rem;
+      background: var(--bg2);
+      border-bottom: 1px solid var(--border);
+    }
+    .dot-red   { width:12px;height:12px;border-radius:50%;background:#f87171; }
+    .dot-yellow{ width:12px;height:12px;border-radius:50%;background:#fbbf24; }
+    .dot-green { width:12px;height:12px;border-radius:50%;background:#4ade80; }
+    .terminal-body {
+      padding: 1.25rem 1.5rem;
+      font-family: "SF Mono", "Fira Code", "Cascadia Code", monospace;
+      font-size: .85rem;
+      line-height: 1.9;
+    }
+    .t-prompt { color: var(--green); }
+    .t-cmd    { color: var(--text); }
+    .t-flag   { color: var(--purple); }
+    .t-str    { color: var(--orange); }
+    .t-out    { color: var(--muted); }
+    .t-ans    { color: var(--cyan); }
+    .t-blank  { display: block; height: .5rem; }
+
+    /* ─── SECTIONS ─── */
+    section { padding: 5rem 2rem; }
+    .section-inner { max-width: 1000px; margin: 0 auto; }
+    .section-label {
+      font-size: .75rem; font-weight: 700; letter-spacing: .12em;
+      text-transform: uppercase; color: var(--green);
+      margin-bottom: .75rem;
+    }
+    h2 {
+      font-size: clamp(1.6rem, 3vw, 2.2rem);
+      font-weight: 800; letter-spacing: -.02em;
+      margin-bottom: 1rem;
+    }
+    .section-lead {
+      color: var(--muted); font-size: 1.05rem;
+      max-width: 560px; margin-bottom: 3rem;
+    }
+
+    /* ─── FEATURES GRID ─── */
+    .features-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+      gap: 1px;
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      overflow: hidden;
+      background: var(--border);
+    }
+    .feature-card {
+      background: var(--bg2);
+      padding: 1.75rem;
+      transition: background .15s;
+    }
+    .feature-card:hover { background: var(--bg3); }
+    .feature-icon {
+      font-size: 1.5rem;
+      margin-bottom: .85rem;
+    }
+    .feature-card h3 {
+      font-size: 1rem; font-weight: 700;
+      margin-bottom: .4rem;
+    }
+    .feature-card p { font-size: .9rem; color: var(--muted); line-height: 1.6; }
+
+    /* ─── INSTALL ─── */
+    #install { background: var(--bg2); border-top: 1px solid var(--border); border-bottom: 1px solid var(--border); }
+    .install-steps { display: flex; flex-direction: column; gap: 1.25rem; }
+    .step {
+      display: flex; gap: 1.25rem; align-items: flex-start;
+    }
+    .step-num {
+      flex-shrink: 0;
+      width: 28px; height: 28px;
+      border-radius: 50%;
+      background: var(--bg3);
+      border: 1px solid var(--border);
+      display: flex; align-items: center; justify-content: center;
+      font-size: .78rem; font-weight: 700; color: var(--muted);
+      margin-top: .1rem;
+    }
+    .step-body h4 { font-size: .95rem; font-weight: 700; margin-bottom: .4rem; }
+    .step-body p  { font-size: .88rem; color: var(--muted); margin-bottom: .6rem; }
+    pre {
+      background: var(--bg3);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      padding: .75rem 1.1rem;
+      font-family: "SF Mono", "Fira Code", monospace;
+      font-size: .83rem;
+      overflow-x: auto;
+      color: var(--text);
+      line-height: 1.7;
+    }
+    code { font-family: "SF Mono", "Fira Code", monospace; font-size: .85em; color: var(--cyan); }
+
+    /* ─── COMMANDS ─── */
+    .commands-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+      gap: 1rem;
+    }
+    .cmd-card {
+      background: var(--bg2);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      padding: 1.25rem;
+    }
+    .cmd-card .cmd-name {
+      font-family: "SF Mono", "Fira Code", monospace;
+      font-size: .88rem;
+      color: var(--green);
+      font-weight: 700;
+      margin-bottom: .35rem;
+    }
+    .cmd-card p { font-size: .875rem; color: var(--muted); }
+
+    /* ─── REMINDERS ─── */
+    #reminders { background: var(--bg2); border-top: 1px solid var(--border); border-bottom: 1px solid var(--border); }
+    .reminder-options {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 1.5rem;
+    }
+    @media (max-width: 640px) { .reminder-options { grid-template-columns: 1fr; } }
+    .reminder-card {
+      background: var(--bg3);
+      border: 1px solid var(--border);
+      border-radius: 10px;
+      padding: 1.75rem;
+    }
+    .reminder-card h3 {
+      font-size: 1rem; font-weight: 700;
+      margin-bottom: .35rem;
+    }
+    .reminder-card .badge {
+      display: inline-block;
+      font-size: .7rem; font-weight: 700; letter-spacing: .06em; text-transform: uppercase;
+      padding: .15rem .5rem;
+      border-radius: 4px;
+      margin-bottom: .75rem;
+    }
+    .badge-green { background: rgba(74,222,128,.12); color: var(--green); }
+    .badge-cyan  { background: rgba(34,211,238,.12); color: var(--cyan); }
+    .reminder-card p { font-size: .875rem; color: var(--muted); margin-bottom: .85rem; }
+
+    /* ─── FOOTER ─── */
+    footer {
+      border-top: 1px solid var(--border);
+      padding: 2.5rem 2rem;
+      text-align: center;
+      color: var(--muted);
+      font-size: .85rem;
+    }
+    footer a { color: var(--muted); }
+    footer a:hover { color: var(--text); }
+
+    /* ─── DIVIDER ─── */
+    .divider {
+      height: 1px;
+      background: linear-gradient(90deg, transparent, var(--border), transparent);
+      margin: 0 auto;
+      max-width: 600px;
+    }
+
+    @media (max-width: 600px) {
+      nav { padding: 0 1rem; }
+      .nav-links { display: none; }
+      section { padding: 3.5rem 1.25rem; }
+      h1 { font-size: 2rem; }
+    }
+  </style>
+</head>
+<body>
+
+<!-- ─── NAV ─── -->
+<nav>
+  <div class="nav-logo">yaad<span> ~</span></div>
+  <div class="nav-links">
+    <a href="#features">Features</a>
+    <a href="#install">Install</a>
+    <a href="#usage">Usage</a>
+    <a href="#reminders">Reminders</a>
+  </div>
+  <a href="https://github.com/KunalSin9h/yaad" class="nav-gh" target="_blank" rel="noopener">
+    <svg width="15" height="15" viewBox="0 0 24 24" fill="currentColor"><path d="M12 2C6.477 2 2 6.484 2 12.017c0 4.425 2.865 8.18 6.839 9.504.5.092.682-.217.682-.483 0-.237-.008-.868-.013-1.703-2.782.605-3.369-1.343-3.369-1.343-.454-1.158-1.11-1.466-1.11-1.466-.908-.62.069-.608.069-.608 1.003.07 1.531 1.032 1.531 1.032.892 1.53 2.341 1.088 2.91.832.092-.647.35-1.088.636-1.338-2.22-.253-4.555-1.113-4.555-4.951 0-1.093.39-1.988 1.029-2.688-.103-.253-.446-1.272.098-2.65 0 0 .84-.27 2.75 1.026A9.564 9.564 0 0112 6.844c.85.004 1.705.115 2.504.337 1.909-1.296 2.747-1.027 2.747-1.027.546 1.379.202 2.398.1 2.651.64.7 1.028 1.595 1.028 2.688 0 3.848-2.339 4.695-4.566 4.943.359.309.678.92.678 1.855 0 1.338-.012 2.419-.012 2.747 0 .268.18.58.688.482A10.019 10.019 0 0022 12.017C22 6.484 17.522 2 12 2z"/></svg>
+    GitHub
+  </a>
+</nav>
+
+<!-- ─── HERO ─── -->
+<section class="hero">
+  <div class="hero-badge"><span class="dot"></span> Powered by Ollama — fully local</div>
+  <h1>Your terminal has a<br /><em>memory</em> now.</h1>
+  <p class="hero-sub">
+    Save commands, notes, URLs, and reminders from your terminal.
+    Recall anything later with natural language. No cloud. No accounts.
+    Everything runs on your machine.
+  </p>
+  <div class="hero-actions">
+    <a href="#install" class="btn-primary">Get started</a>
+    <a href="https://github.com/KunalSin9h/yaad" class="btn-ghost" target="_blank" rel="noopener">View on GitHub</a>
+  </div>
+
+  <div class="terminal">
+    <div class="terminal-bar">
+      <div class="dot-red"></div>
+      <div class="dot-yellow"></div>
+      <div class="dot-green"></div>
+    </div>
+    <div class="terminal-body">
+      <div><span class="t-prompt">❯ </span><span class="t-cmd">yaad add </span><span class="t-str">"claude --resume 17a43487-5ce9-4fd3-a9b5-b099d335f644"</span> <span class="t-flag">--for</span> <span class="t-str">"yaad build session"</span></div>
+      <div class="t-out">  ✓ saved  [command] yaad build session</div>
+      <span class="t-blank"></span>
+      <div><span class="t-prompt">❯ </span><span class="t-cmd">yaad add </span><span class="t-str">"book conference ticket"</span> <span class="t-flag">--remind</span> <span class="t-str">"in 30 minutes"</span></div>
+      <div class="t-out">  ✓ saved  [reminder] due in 30 minutes</div>
+      <span class="t-blank"></span>
+      <div><span class="t-prompt">❯ </span><span class="t-cmd">yaad ask </span><span class="t-str">"which claude session was I building yaad in?"</span></div>
+      <div class="t-ans">  You were using claude --resume 17a43487-5ce9-4fd3-a9b5-b099d335f644</div>
+      <div class="t-ans">  (tagged as the yaad build session)</div>
+    </div>
+  </div>
+</section>
+
+<!-- ─── FEATURES ─── -->
+<section id="features">
+  <div class="section-inner">
+    <div class="section-label">Features</div>
+    <h2>Everything you need, nothing more.</h2>
+    <p class="section-lead">Built for developers who live in the terminal and value privacy.</p>
+
+    <div class="features-grid">
+      <div class="feature-card">
+        <div class="feature-icon">🔍</div>
+        <h3>Natural language recall</h3>
+        <p>Ask questions in plain English. Local embeddings + LLM reasoning find exactly what you saved, even weeks later.</p>
+      </div>
+      <div class="feature-card">
+        <div class="feature-icon">🔒</div>
+        <h3>Fully local &amp; private</h3>
+        <p>All AI runs via Ollama on your machine. Zero cloud, zero accounts, zero telemetry. Your data never leaves.</p>
+      </div>
+      <div class="feature-card">
+        <div class="feature-icon">⏰</div>
+        <h3>Smart reminders</h3>
+        <p>Parse natural time expressions like <code>"in 30 minutes"</code>, <code>"tomorrow 9am"</code>, <code>"Friday 3pm"</code> into real deadlines.</p>
+      </div>
+      <div class="feature-card">
+        <div class="feature-icon">🏷️</div>
+        <h3>Auto-enriched metadata</h3>
+        <p>Every memory captures working directory, hostname, and timestamp. AI auto-detects type and extracts tags.</p>
+      </div>
+      <div class="feature-card">
+        <div class="feature-icon">📴</div>
+        <h3>Offline-safe</h3>
+        <p>Memories save even when Ollama is unavailable. AI enrichment gracefully degrades — your data is never lost.</p>
+      </div>
+      <div class="feature-card">
+        <div class="feature-icon">🧩</div>
+        <h3>Fully extensible</h3>
+        <p>Ports &amp; Adapters architecture. Swap storage, AI backend, or notifier by implementing a single interface.</p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ─── INSTALL ─── -->
+<section id="install">
+  <div class="section-inner">
+    <div class="section-label">Installation</div>
+    <h2>Up and running in minutes.</h2>
+    <p class="section-lead">Requires Go 1.21+ and Ollama running locally.</p>
+
+    <div class="install-steps">
+      <div class="step">
+        <div class="step-num">1</div>
+        <div class="step-body">
+          <h4>Install Ollama and pull models</h4>
+          <p>Get Ollama from <a href="https://ollama.com" target="_blank" rel="noopener">ollama.com</a>, then pull the required models.</p>
+          <pre>ollama pull nomic-embed-text   # embeddings
+ollama pull llama3.2:3b        # reasoning (swap for any chat model)</pre>
+        </div>
+      </div>
+      <div class="step">
+        <div class="step-num">2</div>
+        <div class="step-body">
+          <h4>Install yaad</h4>
+          <pre>go install github.com/kunalsin9h/yaad/cmd/yaad@latest</pre>
+        </div>
+      </div>
+      <div class="step">
+        <div class="step-num">3</div>
+        <div class="step-body">
+          <h4>Initialise config</h4>
+          <pre>yaad config init</pre>
+        </div>
+      </div>
+      <div class="step">
+        <div class="step-num">4</div>
+        <div class="step-body">
+          <h4>Save your first memory</h4>
+          <pre>yaad add "hello world" --for "my first yaad memory"</pre>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ─── USAGE ─── -->
+<section id="usage">
+  <div class="section-inner">
+    <div class="section-label">Usage</div>
+    <h2>A command for every moment.</h2>
+    <p class="section-lead">Five memory types, auto-detected by AI: <code>command</code> · <code>note</code> · <code>url</code> · <code>fact</code> · <code>reminder</code></p>
+
+    <div class="commands-grid">
+      <div class="cmd-card">
+        <div class="cmd-name">yaad add "&lt;content&gt;" [flags]</div>
+        <p>Save a memory. Use <code>--for</code> for context, <code>--remind</code> for a deadline, <code>--tag</code> for labels.</p>
+      </div>
+      <div class="cmd-card">
+        <div class="cmd-name">yaad ask "&lt;question&gt;"</div>
+        <p>Query everything you've saved with natural language. The LLM reasons over semantic search results.</p>
+      </div>
+      <div class="cmd-card">
+        <div class="cmd-name">yaad list [flags]</div>
+        <p>Browse recent memories. Filter by <code>--type</code>, <code>--tag</code>, or <code>--remind</code> (pending reminders only).</p>
+      </div>
+      <div class="cmd-card">
+        <div class="cmd-name">yaad get &lt;id&gt;</div>
+        <p>Show full details of a memory. Accepts 10-char ULID prefix — no need to type the full ID.</p>
+      </div>
+      <div class="cmd-card">
+        <div class="cmd-name">yaad delete &lt;id&gt;</div>
+        <p>Delete a memory by ID. Prompts for confirmation; skip with <code>-y</code>.</p>
+      </div>
+      <div class="cmd-card">
+        <div class="cmd-name">yaad config init / set / get</div>
+        <p>Manage <code>~/.yaadrc</code>. Override Ollama URL, models, notifier, and reminder poll interval.</p>
+      </div>
+    </div>
+
+    <div style="margin-top: 2rem;">
+      <pre><span style="color:var(--muted)"># a command to resume later</span>
+yaad add "claude --resume 17a43487" --for "yaad build session"
+
+<span style="color:var(--muted)"># a fact with tags</span>
+yaad add "staging postgres is on port 5433" --tag postgres --tag staging
+
+<span style="color:var(--muted)"># a time-sensitive reminder</span>
+yaad add "submit PR for review" --remind "tomorrow 9am"
+
+<span style="color:var(--muted)"># recall anything</span>
+yaad ask "what was the staging postgres port?"
+yaad ask "do I have anything due tonight?"</pre>
+    </div>
+  </div>
+</section>
+
+<!-- ─── REMINDERS ─── -->
+<section id="reminders">
+  <div class="section-inner">
+    <div class="section-label">Reminders</div>
+    <h2>Never forget a deadline.</h2>
+    <p class="section-lead">Two ways to surface reminders — pick what fits your workflow.</p>
+
+    <div class="reminder-options">
+      <div class="reminder-card">
+        <span class="badge badge-green">Recommended</span>
+        <h3>Inline — shell PROMPT_COMMAND</h3>
+        <p>Reminders surface directly in your terminal on every prompt. No background process required.</p>
+        <pre><span style="color:var(--muted)"># ~/.bashrc</span>
+export PROMPT_COMMAND="yaad check; $PROMPT_COMMAND"
+
+<span style="color:var(--muted)"># ~/.zshrc</span>
+precmd() { yaad check }</pre>
+      </div>
+      <div class="reminder-card">
+        <span class="badge badge-cyan">Systemd</span>
+        <h3>Background daemon</h3>
+        <p>Install yaad as a systemd user service. Sends desktop notifications via <code>notify-send</code> automatically.</p>
+        <pre>yaad daemon install
+systemctl --user enable --now yaad
+
+<span style="color:var(--muted)"># check status</span>
+systemctl --user status yaad</pre>
+      </div>
+    </div>
+
+    <p style="margin-top:1.5rem;font-size:.875rem;color:var(--muted);">
+      Learn more in the
+      <a href="https://github.com/KunalSin9h/yaad?tab=readme-ov-file#reminders" target="_blank" rel="noopener">reminders documentation →</a>
+    </p>
+  </div>
+</section>
+
+<!-- ─── CTA ─── -->
+<section style="text-align:center; padding: 5rem 2rem;">
+  <div class="section-inner" style="max-width:580px">
+    <h2>Start remembering everything.</h2>
+    <p style="color:var(--muted);margin:1rem 0 2rem;font-size:1.05rem;">
+      One command. All local. Open source.
+    </p>
+    <div class="hero-actions" style="justify-content:center">
+      <a href="#install" class="btn-primary">Install yaad</a>
+      <a href="https://github.com/KunalSin9h/yaad" class="btn-ghost" target="_blank" rel="noopener">Star on GitHub</a>
+    </div>
+    <div style="margin-top:2.5rem;">
+      <pre style="display:inline-block;text-align:left;">go install github.com/kunalsin9h/yaad/cmd/yaad@latest</pre>
+    </div>
+  </div>
+</section>
+
+<!-- ─── FOOTER ─── -->
+<footer>
+  <p>
+    <strong style="color:var(--text)">yaad</strong> &nbsp;·&nbsp;
+    MIT License &nbsp;·&nbsp;
+    <a href="https://github.com/KunalSin9h/yaad" target="_blank" rel="noopener">GitHub</a> &nbsp;·&nbsp;
+    Built by <a href="https://github.com/KunalSin9h" target="_blank" rel="noopener">Kunal Singh</a>
+  </p>
+</footer>
+
+</body>
+</html>
