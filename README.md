@@ -36,7 +36,10 @@ yaad ask "do I have anything due tonight?"
 
 ## Features
 
-- **Query-first** — natural language search powered by local embeddings + LLM
+- **Hybrid retrieval** — BM25 full-text search + semantic vector search merged via Reciprocal Rank Fusion; beats vector-only recall on keyword-heavy queries
+- **HyDE query expansion** — embeds a _hypothetical answer_ rather than the raw question, improving semantic recall by 10–30% on abstract queries
+- **Cross-encoder reranking** — optional Qwen3-Reranker via Ollama re-scores results for true relevance after initial retrieval
+- **Entity knowledge graph** — LLM extracts named entities (people, projects, tools) from every memory and links them; query by entity name across all related memories
 - **Rich metadata** — every memory captures `--for` context, working directory, hostname, and timestamp automatically
 - **Smart reminders** — parse `"in 30 minutes"`, `"tomorrow 9am"`, `"Friday 3pm"` into real deadlines
 - **Terminal-native notifications** — reminder daemon via systemd, or inline via shell `PROMPT_COMMAND`
@@ -56,6 +59,13 @@ Pull the required models once:
 ```bash
 ollama pull nomic-embed-text   # embeddings
 ollama pull llama3.2:3b        # reasoning (or any chat model you prefer)
+```
+
+Optional — for cross-encoder reranking (higher result quality):
+
+```bash
+ollama pull dengcao/Qwen3-Reranker-0.6B   # smallest; Q8_0 variant recommended
+# then configure: yaad config set ollama.rerank_model dengcao/Qwen3-Reranker-0.6B
 ```
 
 ---
@@ -88,6 +98,7 @@ Common commands:
 
 ```bash
 yaad config set ollama.chat_model mistral
+yaad config set ollama.rerank_model dengcao/Qwen3-Reranker-0.6B   # optional
 yaad config list
 ```
 
@@ -212,10 +223,38 @@ Application Layer
     ├── AIPort        ← OllamaAdapter (direct HTTP, no SDK dep)
     ├── TimeParserPort← WhenAdapter   (github.com/olebedev/when)
     ├── NotifierPort  ← NotifySend / Stdout (auto-detected)
-    └── ConfigPort    ← SQLiteAdapter (same DB, config table)
+    └── ConfigPort    ← RcfileAdapter (~/.yaadrc)
 ```
 
 Swapping any layer requires implementing one interface. For example, to use ChromaDB for vector search, write a `ChromaAdapter` that satisfies `StoragePort` — the rest of the app is unchanged.
+
+### Retrieval pipeline (`yaad ask`)
+
+```
+question
+   │
+   ▼  HyDE (ExpandQuery)
+   │  LLM generates a hypothetical answer → embed that instead of the raw question
+   │  → better semantic match to stored memories (10–30% recall improvement)
+   │
+   ▼  FindHybrid (BM25 + vector, RRF fusion)
+   │  ├── BM25 leg  — SQLite FTS5 keyword search, returns ranked list
+   │  └── Vector leg — cosine similarity over all stored embeddings
+   │       ↓
+   │  Reciprocal Rank Fusion  score = 1/(60+rank_bm25) + 1/(60+rank_vec)
+   │  → single merged ranking, top 10 candidates
+   │
+   ▼  Rerank (optional, Qwen3-Reranker on Ollama)
+   │  Cross-encoder scores each (query, candidate) pair directly
+   │  → reorders by true contextual relevance, top 5 selected
+   │
+   ▼  Answer (LLM)
+      Synthesises final answer from the top 5 memories
+```
+
+### Knowledge graph (`yaad add`)
+
+Every memory addition asynchronously extracts named entities (people, projects, tools, concepts, places) and stores them in a SQLite graph (`entities` + `memory_entities`). This enables entity-centric retrieval — e.g. finding all memories that mention a specific person or project — independent of semantic similarity.
 
 ---
 
