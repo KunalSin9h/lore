@@ -1,51 +1,35 @@
 ## yaad
 
 > AI-native memory, recall and reminder on the terminal — locally with Ollama.
+>
+> **[yaad.knl.co.in](https://yaad.knl.co.in)**
 
 Save anything from your terminal — commands, notes, URLs, facts, reminders — and recall it later with natural language. Everything runs locally. No cloud, no accounts.
 
 ```bash
-# Save a anything with context
+# Save with optional context
 yaad add "claude --resume 17a43487-5ce9-4fd3-a9b5-b099d335f644" \
-  --for "yaad CLI build session" # --for is optional
+  --for "yaad CLI build session"
 
 # Set a time-based reminder
 yaad add "book conference ticket" --remind "in 30 minutes"
 
-# Ask anything
-yaad ask "which claude session was I building yaad in?"
+# Ask anything — even indirectly
+yaad ask "where was I with the yaad work?"
 yaad ask "do I have anything due tonight?"
 ```
 
 ---
 
-## Table of Contents
-
-- [Features](#features)
-- [Requirements](#requirements)
-- [Installation](#installation)
-- [Configuration](#configuration)
-- [Usage](#usage)
-- [Reminders](#reminders)
-- [Architecture](#architecture)
-- [Project structure](#project-structure)
-- [Contributing](#contributing)
-- [License](#license)
-
----
-
 ## Features
 
-- **Hybrid retrieval** — BM25 full-text search + semantic vector search merged via Reciprocal Rank Fusion; beats vector-only recall on keyword-heavy queries
-- **HyDE query expansion** — embeds a _hypothetical answer_ rather than the raw question, improving semantic recall by 10–30% on abstract queries
-- **Cross-encoder reranking** — optional Qwen3-Reranker via Ollama re-scores results for true relevance after initial retrieval
-- **Entity knowledge graph** — LLM extracts named entities (people, projects, tools) from every memory and links them; query by entity name across all related memories
-- **Rich metadata** — every memory captures `--for` context, working directory, hostname, and timestamp automatically
+- **Hybrid retrieval** — BM25 full-text + semantic vector search merged via Reciprocal Rank Fusion
+- **HyDE query expansion** — embeds a hypothetical answer rather than the raw question for better recall
+- **Cross-encoder reranking** — optional Qwen3-Reranker re-scores results for true relevance
+- **Entity knowledge graph** — extracts people, projects, tools from every memory; query by entity name
 - **Smart reminders** — parse `"in 30 minutes"`, `"tomorrow 9am"`, `"Friday 3pm"` into real deadlines
-- **Terminal-native notifications** — reminder daemon via systemd, or inline via shell `PROMPT_COMMAND`
 - **Fully local** — all AI runs via [Ollama](https://ollama.com), no data leaves your machine
 - **Offline-safe** — saves gracefully even when Ollama is not running
-- **Ports & Adapters architecture** — every component is swappable (storage, AI, notifier)
 
 ---
 
@@ -54,18 +38,12 @@ yaad ask "do I have anything due tonight?"
 - [Go](https://go.dev) 1.21+
 - [Ollama](https://ollama.com) running locally
 
-Pull the required models once:
-
 ```bash
-ollama pull nomic-embed-text   # embeddings
-ollama pull llama3.2:3b        # reasoning (or any chat model you prefer)
-```
+ollama pull nomic-embed-text          # embeddings
+ollama pull llama3.2:3b               # reasoning
 
-Optional — for cross-encoder reranking (higher result quality):
-
-```bash
-ollama pull dengcao/Qwen3-Reranker-0.6B   # smallest; Q8_0 variant recommended
-# then configure: yaad config set ollama.rerank_model dengcao/Qwen3-Reranker-0.6B
+# optional: cross-encoder reranking
+ollama pull dengcao/Qwen3-Reranker-0.6B
 ```
 
 ---
@@ -80,214 +58,69 @@ Or build from source:
 
 ```bash
 git clone https://github.com/kunalsin9h/yaad
-cd yaad
-make install
+cd yaad && make install
 ```
 
 ---
 
 ## Configuration
 
-Configuration is read from `~/.yaadrc`. Generate it with commented defaults:
-
 ```bash
-yaad config init
-```
-
-Common commands:
-
-```bash
-yaad config set ollama.chat_model mistral
-yaad config set ollama.rerank_model dengcao/Qwen3-Reranker-0.6B   # optional
+yaad config init                                                  # create ~/.yaadrc
+yaad config set ollama.rerank_model dengcao/Qwen3-Reranker-0.6B  # optional
 yaad config list
 ```
 
-See [CONFIG.md](./CONFIG.md) for all keys, notifier options, CLI flag overrides, and data storage location.
+See [CONFIG.md](./CONFIG.md) for all keys, CLI flag overrides, and notifier options.
 
 ---
 
 ## Usage
 
-### Save a memory
-
 ```bash
-yaad add "<content>" [flags]
+# Save
+yaad add "staging postgres is on port 5433" --for "backend infra" --tag postgres
+yaad add "https://pkg.go.dev/modernc.org/sqlite" --for "pure Go SQLite, no CGO"
 
-Flags:
-  -f, --for     string   Why are you saving this? (context label)
-      --remind  string   When to remind you ("in 30 minutes", "tomorrow 9am")
-      --type    string   Override type detection: command|note|reminder|url|fact
-      --tag     string   Add a tag (repeatable)
-```
+# Ask
+yaad ask "what was the staging db port?"
+yaad ask "everything I saved about payments-api"
 
-Examples:
+# Browse
+yaad list                    # 20 most recent
+yaad list --type command
+yaad list --tag postgres
+yaad list --remind           # pending reminders only
 
-```bash
-# A command you want to resume later
-yaad add "claude --resume 17a43487-5ce9-4fd3-a9b5-b099d335f644" \
-  --for "yaad build session"
-
-# A time-sensitive reminder
-yaad add "book conference ticket" --remind "in 30 minutes"
-
-# A fact with tags
-yaad add "staging postgres is on port 5433" \
-  --for "backend infra" --tag postgres --tag staging
-
-# A URL
-yaad add "https://pkg.go.dev/modernc.org/sqlite" \
-  --for "pure Go SQLite driver, no CGO"
-```
-
-### Query your memories
-
-```bash
-yaad ask "which claude session was for building yaad?"
-yaad ask "what was the staging postgres port?"
-yaad ask "do I have anything due tonight?"
-```
-
-### Browse memories
-
-```bash
-yaad list                   # 20 most recent
-yaad list --type command    # only commands
-yaad list --tag postgres    # by tag
-yaad list --remind          # pending reminders only
-yaad list --limit 50
-```
-
-### Get full details
-
-```bash
-yaad get 01KKXKKJ3Q         # by ID (prefix is fine)
-```
-
-Output includes content, context label, type, tags, working directory, hostname, and timestamps.
-
-### Delete
-
-```bash
-yaad delete 01KKXKKJ3Q      # prompts for confirmation
-yaad delete 01KKXKKJ3Q -y   # skip confirmation
+# Lookup / delete
+yaad get 01KKXKKJ3Q          # full details by ID prefix
+yaad delete 01KKXKKJ3Q -y
+yaad clean                   # delete all
 ```
 
 ---
 
 ## Reminders
 
-### Inline — shell `PROMPT_COMMAND` (recommended)
-
-Reminders surface directly in your terminal on every prompt — no background process needed.
-
-Add to your `~/.bashrc` or `~/.zshrc`:
+Add `yaad check` to your shell prompt for inline reminders — no background process needed:
 
 ```bash
+# ~/.zshrc
+precmd() { yaad check }
+
+# ~/.bashrc
 export PROMPT_COMMAND="yaad check; $PROMPT_COMMAND"
 ```
 
-For `zsh`, add to `~/.zshrc`:
-
-```zsh
-precmd() { yaad check }
-```
-
-### Background daemon — systemd user service
-
-```bash
-yaad daemon install          # writes ~/.config/systemd/user/yaad.service
-systemctl --user enable --now yaad
-```
-
-Check status:
-
-```bash
-systemctl --user status yaad
-```
+Or run as a systemd user service with desktop notifications. See [REMINDERS.md](./REMINDERS.md) for full setup.
 
 ---
 
 ## Architecture
 
-`yaad` follows the **Ports and Adapters** (Hexagonal) pattern. The domain and application logic are fully isolated from infrastructure — every adapter is replaceable without touching business logic.
+`yaad` follows the Ports and Adapters (Hexagonal) pattern. `yaad ask` runs a 4-stage retrieval pipeline: HyDE query expansion → hybrid BM25/vector search → cross-encoder reranking → LLM answer synthesis.
 
-```
-CLI (Cobra)
-    │
-Application Layer
-    ├── MemoryService   — add, ask, list, delete
-    └── ReminderService — check, daemon
-         │
-    Ports (interfaces)
-    ├── StoragePort   ← SQLiteAdapter (modernc.org/sqlite, pure Go)
-    ├── AIPort        ← OllamaAdapter (direct HTTP, no SDK dep)
-    ├── TimeParserPort← WhenAdapter   (github.com/olebedev/when)
-    ├── NotifierPort  ← NotifySend / Stdout (auto-detected)
-    └── ConfigPort    ← RcfileAdapter (~/.yaadrc)
-```
-
-Swapping any layer requires implementing one interface. For example, to use ChromaDB for vector search, write a `ChromaAdapter` that satisfies `StoragePort` — the rest of the app is unchanged.
-
-### Retrieval pipeline (`yaad ask`)
-
-```
-question
-   │
-   ▼  HyDE (ExpandQuery)
-   │  LLM generates a hypothetical answer → embed that instead of the raw question
-   │  → better semantic match to stored memories (10–30% recall improvement)
-   │
-   ▼  FindHybrid (BM25 + vector, RRF fusion)
-   │  ├── BM25 leg  — SQLite FTS5 keyword search, returns ranked list
-   │  └── Vector leg — cosine similarity over all stored embeddings
-   │       ↓
-   │  Reciprocal Rank Fusion  score = 1/(60+rank_bm25) + 1/(60+rank_vec)
-   │  → single merged ranking, top 10 candidates
-   │
-   ▼  Rerank (optional, Qwen3-Reranker on Ollama)
-   │  Cross-encoder scores each (query, candidate) pair directly
-   │  → reorders by true contextual relevance, top 5 selected
-   │
-   ▼  Answer (LLM)
-      Synthesises final answer from the top 5 memories
-```
-
-### Knowledge graph (`yaad add`)
-
-Every memory addition asynchronously extracts named entities (people, projects, tools, concepts, places) and stores them in a SQLite graph (`entities` + `memory_entities`). This enables entity-centric retrieval — e.g. finding all memories that mention a specific person or project — independent of semantic similarity.
-
----
-
-## Project structure
-
-```
-yaad/
-├── cmd/yaad/main.go          # entry point + dependency wiring
-├── internal/
-│   ├── domain/                     # Memory, MemoryType, errors — no deps
-│   ├── ports/                      # interfaces only — no deps
-│   ├── app/                        # business logic — depends only on ports
-│   └── adapters/
-│       ├── sqlite/                 # StoragePort + ConfigPort
-│       ├── ollama/                 # AIPort (direct HTTP)
-│       ├── timeparser/             # TimeParserPort
-│       └── notifier/               # NotifierPort (notify-send + stdout)
-├── SPEC.md                         # product specification
-├── PLAN.md                         # implementation checklist
-└── Makefile
-```
-
----
-
-## Contributing
-
-Contributions are welcome. The architecture is designed to make new adapters easy to add:
-
-- **New AI backend** (OpenAI, Gemini) → implement `ports.AIPort`
-- **New storage backend** (ChromaDB, Postgres) → implement `ports.StoragePort`
-- **New notifier** (macOS, Slack, email) → implement `ports.NotifierPort`
-
-Please open an issue before starting large changes.
+See [ARCHITECTURE.md](./ARCHITECTURE.md) for the full diagram, knowledge graph design, and adapter guide.
 
 ---
 
