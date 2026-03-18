@@ -7,14 +7,14 @@
 Save anything from your terminal — commands, notes, URLs, facts, reminders — and recall it later with natural language. Everything runs locally. No cloud, no accounts.
 
 ```bash
-# Save anything
-yaad add "claude --resume 17a43487-5ce9-4fd3-a9b5-b099d335f644"
+# Save a anything
+yaad add "claude session for db migration: 3fa2c891-7b4e....."
 
 # Set a time-based reminder
 yaad add "book conference ticket" --remind "in 30 minutes"
 
 # Ask anything
-yaad ask "which claude session was I building yaad in?"
+yaad ask "claude session for db migration?"
 yaad ask "do I have anything due tonight?"
 ```
 
