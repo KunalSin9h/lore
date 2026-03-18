@@ -1,6 +1,6 @@
 ---
 name: yaad
-description: Local memory engine — save and recall facts, commands, URLs, notes, and reminders that persist across sessions. Auto-invoke at session start to load prior context, when the user mentions something worth remembering, or when they ask about something they may have saved before.
+description: yaad is a simple local memory engine for humans and agents. Use it to remember anything worth keeping across sessions, and to recall it later in natural language. Invoke when starting work to load prior context, when something is worth saving, or when the user asks about something from the past.
 argument-hint: "[query] or [add <content>] or [add <content> --remind 'when']"
 allowed-tools: Bash
 ---
