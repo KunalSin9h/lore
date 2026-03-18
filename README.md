@@ -1,21 +1,24 @@
 <img width="1287" height="443" alt="image" src="https://github.com/user-attachments/assets/782e0ea7-143d-43e4-8e22-10c6b19a2740" />
 
+## yaad
 
-AI-native memory, recall and reminder for you and your agent — locally with Ollama.
+> The simplest local memory engine — for you and your agents.
 
-> [yaad website](https://yaad.knl.co.in/)
+> [yaad.knl.co.in](https://yaad.knl.co.in/)
 
-Save anything from your terminal — thoughts, notes, URLs, facts, reminders — and recall it later with natural language. Everything runs locally. No cloud, no accounts.
+No servers. No SDKs. No complexity. Save anything, recall it with natural language. Works for humans in the terminal and for AI agents as a skill. Everything runs locally via Ollama — no cloud, no accounts.
 
 ```bash
-# Save a anything
-yaad add "claude session for db migration: 3fa2c891-7b4e....."
+# Save anything — context in the content makes it findable
+yaad add "staging db is postgres on port 5433" --tag postgres
+yaad add "prod nginx config at /etc/nginx/sites-enabled/app"
+yaad add "deploy checklist: run migrations, restart workers, clear cache"
 
-# Set a time-based reminder
+# Set a reminder
 yaad add "book conference ticket" --remind "in 30 minutes"
 
 # Ask anything
-yaad ask "claude session for db migration?"
+yaad ask "what's the staging db port?"
 yaad ask "do I have anything due tonight?"
 ```
 
@@ -26,6 +29,7 @@ yaad ask "do I have anything due tonight?"
 - [Features](#features)
 - [Requirements](#requirements)
 - [Installation](#installation)
+- [Agent Integration](#agent-integration)
 - [Configuration](#configuration)
 - [Usage](#usage)
 - [Reminders](#reminders)
@@ -38,10 +42,11 @@ yaad ask "do I have anything due tonight?"
 
 ## Features
 
+- **Simple by design** — one binary, one command to save, one to recall
 - **Query-first** — natural language search powered by local embeddings + LLM
-- **Rich metadata** — every memory captures working directory, hostname, and timestamp automatically
+- **Agent Skill** — install via `npx skills add kunalsin9h/yaad`, works with Claude Code, Cursor, Codex, and 39+ agents
 - **Smart reminders** — parse `"in 30 minutes"`, `"tomorrow 9am"`, `"Friday 3pm"` into real deadlines
-- **Terminal-native notifications** — reminder daemon via systemd, or inline via shell `PROMPT_COMMAND`
+- **Rich metadata** — every memory captures working directory, hostname, and timestamp automatically
 - **Fully local** — all AI runs via [Ollama](https://ollama.com), no data leaves your machine
 - **Offline-safe** — saves gracefully even when Ollama is not running
 - **Ports & Adapters architecture** — every component is swappable (storage, AI, notifier)
@@ -63,10 +68,10 @@ ollama pull llama3.2:3b        # reasoning (or any chat model you prefer)
 
 ## Installation
 
-**Linux / macOS** — one-liner (detects platform and arch automatically):
+**Linux / macOS** — one-liner:
 
 ```bash
-curl -fsSL https://raw.githubusercontent.com/KunalSin9h/yaad/main/scripts/install.sh | bash
+curl -fsSL https://yaad.knl.co.in/install.sh | bash
 ```
 
 **Go install:**
@@ -83,6 +88,28 @@ go install github.com/kunalsin9h/yaad/cmd/yaad@latest
 git clone https://github.com/kunalsin9h/yaad
 cd yaad
 make install
+```
+
+---
+
+## Agent Integration
+
+yaad ships as an [Agent Skill](https://github.com/vercel-labs/skills) — compatible with Claude Code, Cursor, Codex CLI, Gemini CLI, and any agent that supports the open skills standard.
+
+```bash
+# install globally — available in every project and agent session
+npx skills add kunalsin9h/yaad -g
+
+# or project-scoped
+npx skills add kunalsin9h/yaad
+```
+
+Once installed, your agent can save and recall memory across sessions:
+
+```bash
+/yaad "what's the prod db setup?"                          # recall
+/yaad add "prod uses nginx, config at /etc/nginx/..."      # save
+/yaad add "review PR #42" --remind "tomorrow 9am"          # remind
 ```
 
 ---
@@ -119,30 +146,27 @@ Flags:
       --tag     string   Add a tag (repeatable)
 ```
 
-Examples:
+Put context directly in the content — the AI embeds the full string, so searchable context belongs there:
 
 ```bash
-# Just save something
-yaad add "kubectl rollout restart deployment/api"
+# facts and commands
+yaad add "staging db is postgres on port 5433" --tag postgres
+yaad add "prod login: ssh -i ~/.ssh/id_rsa user@bastion.internal"
+yaad add "API rate limit is 100 req/min per token" --tag api
 
-# Include context right in the content — AI will find it later
-yaad add "yaad build session: claude --resume 17a43487-5ce9-4fd3-a9b5-b099d335f644"
+# URLs
+yaad add "stripe charges API: https://docs.stripe.com/api/charges" --tag stripe
 
-# A time-sensitive reminder
+# reminders
 yaad add "book conference ticket" --remind "in 30 minutes"
-
-# A fact with tags
-yaad add "backend infra — staging postgres is on port 5433" --tag postgres --tag staging
-
-# A URL with context
-yaad add "pure Go SQLite driver, no CGO: https://pkg.go.dev/modernc.org/sqlite"
+yaad add "submit PR for review" --remind "tomorrow 9am"
 ```
 
 ### Query your memories
 
 ```bash
-yaad ask "which claude session was for building yaad?"
-yaad ask "what was the staging postgres port?"
+yaad ask "what's the staging db port?"
+yaad ask "how do I log into prod?"
 yaad ask "do I have anything due tonight?"
 ```
 
@@ -161,8 +185,6 @@ yaad list --limit 50
 ```bash
 yaad get 01KKXKKJ3Q         # by ID (prefix is fine)
 ```
-
-Output includes content, context label, type, tags, working directory, hostname, and timestamps.
 
 ### Delete
 
@@ -196,12 +218,6 @@ precmd() { yaad check }
 ```bash
 yaad daemon install          # writes ~/.config/systemd/user/yaad.service
 systemctl --user enable --now yaad
-```
-
-Check status:
-
-```bash
-systemctl --user status yaad
 ```
 
 ---
@@ -243,8 +259,8 @@ yaad/
 │       ├── ollama/                 # AIPort (direct HTTP)
 │       ├── timeparser/             # TimeParserPort
 │       └── notifier/               # NotifierPort (notify-send + stdout)
+├── skills/yaad/                    # Agent Skill (npx skills add kunalsin9h/yaad)
 ├── SPEC.md                         # product specification
-├── PLAN.md                         # implementation checklist
 └── Makefile
 ```
 
