@@ -1,0 +1,729 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Get Started with yaad — Local AI Memory in Minutes</title>
+  <meta name="description" content="Install yaad, save your first memory, recall it with natural language, and wire it into your AI agent as a skill. The complete getting started guide." />
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Baloo+2:wght@500;600;700;800&family=Manrope:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500;700&display=swap" rel="stylesheet" />
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    :root {
+      --bg:      #0c0b09;
+      --bg2:     #141311;
+      --bg3:     #1c1a17;
+      --bg4:     #252320;
+      --border:  #2e2b26;
+      --border2: #3d3a33;
+      --text:    #f0ede6;
+      --muted:   #888580;
+      --dim:     #52504a;
+      --green:   #4ade80;
+      --amber:   #fbbf24;
+      --rose:    #fb7185;
+      --blue:    #60a5fa;
+      --purple:  #c084fc;
+      --cyan:    #22d3ee;
+    }
+
+    html { scroll-behavior: smooth; }
+
+    body {
+      background: var(--bg);
+      color: var(--text);
+      font-family: "Manrope", -apple-system, sans-serif;
+      font-size: 17px;
+      line-height: 1.7;
+      -webkit-font-smoothing: antialiased;
+      overflow-x: hidden;
+    }
+
+    /* ─── PROGRESS BAR ─── */
+    #progress-bar {
+      position: fixed;
+      top: 0; left: 0;
+      height: 2px;
+      width: 0%;
+      background: linear-gradient(90deg, var(--green), var(--cyan));
+      z-index: 200;
+      transition: width .1s linear;
+    }
+
+    /* ─── NAV ─── */
+    nav {
+      position: sticky; top: 0; z-index: 100;
+      display: flex; align-items: center; justify-content: space-between;
+      padding: 0 2rem;
+      height: 60px;
+      background: rgba(12,11,9,.94);
+      backdrop-filter: blur(20px);
+      border-bottom: 1px solid var(--border);
+    }
+    .nav-logo {
+      font-family: "Baloo 2", sans-serif;
+      font-size: 1.4rem; font-weight: 800;
+      color: var(--text); letter-spacing: -.5px;
+      text-decoration: none;
+    }
+    .nav-logo .tilde { color: var(--dim); font-weight: 400; }
+    .nav-back {
+      font-family: "JetBrains Mono", monospace;
+      font-size: .72rem; font-weight: 500;
+      color: var(--dim); letter-spacing: .04em;
+      display: flex; align-items: center; gap: .5rem;
+      transition: color .15s;
+      text-decoration: none;
+    }
+    .nav-back:hover { color: var(--muted); }
+    .nav-gh {
+      display: flex; align-items: center; gap: .4rem;
+      padding: .28rem .85rem;
+      border: 1px solid var(--border2);
+      font-size: .8rem; font-weight: 600;
+      color: var(--text); background: var(--bg3);
+      transition: border-color .15s, background .15s;
+      text-decoration: none;
+    }
+    .nav-gh:hover { border-color: var(--green); background: var(--bg4); }
+
+    /* ─── LAYOUT ─── */
+    .page-wrap {
+      max-width: 1100px;
+      margin: 0 auto;
+      padding: 0 2rem;
+      display: grid;
+      grid-template-columns: 1fr 220px;
+      gap: 0 4rem;
+      align-items: start;
+    }
+
+    /* ─── ARTICLE ─── */
+    article {
+      padding: 4rem 0 8rem;
+      min-width: 0;
+    }
+
+    /* ─── POST HEADER ─── */
+    .post-header {
+      margin-bottom: 3rem;
+      opacity: 0;
+      transform: translateY(16px);
+      animation: fadeUp .5s ease forwards;
+    }
+    .post-meta {
+      display: flex; align-items: center; gap: .65rem;
+      font-family: "JetBrains Mono", monospace;
+      font-size: .7rem; color: var(--dim);
+      letter-spacing: .06em;
+      margin-bottom: 1.25rem;
+    }
+    .post-tag {
+      padding: .18rem .6rem;
+      border: 1px solid var(--green);
+      color: var(--green);
+      font-size: .65rem; font-weight: 700;
+      letter-spacing: .12em; text-transform: uppercase;
+    }
+    .post-sep { color: var(--border2); }
+
+    h1 {
+      font-family: "Baloo 2", sans-serif;
+      font-size: clamp(2.2rem, 5vw, 3.2rem);
+      font-weight: 800;
+      line-height: 1.08;
+      letter-spacing: -.04em;
+      margin-bottom: 1.25rem;
+      color: var(--text);
+    }
+    .lead {
+      font-size: 1.08rem;
+      color: var(--muted);
+      line-height: 1.85;
+      max-width: 580px;
+      margin-bottom: 2rem;
+    }
+    .tldr {
+      background: var(--bg2);
+      border: 1px solid var(--border);
+      border-left: 2px solid var(--green);
+      padding: 1rem 1.25rem;
+      font-size: .92rem;
+    }
+    .tldr-label {
+      font-family: "JetBrains Mono", monospace;
+      font-size: .65rem; font-weight: 700;
+      letter-spacing: .14em; text-transform: uppercase;
+      color: var(--green); margin-bottom: .35rem;
+    }
+    .tldr p { color: var(--muted); line-height: 1.75; }
+    .tldr code {
+      font-family: "JetBrains Mono", monospace;
+      color: var(--amber); background: none;
+      border: none; padding: 0; font-size: .88em;
+    }
+
+    /* ─── STEPS ─── */
+    .step-block {
+      margin-bottom: .5rem;
+      opacity: 0;
+      transform: translateY(20px);
+      transition: opacity .45s ease, transform .45s ease;
+    }
+    .step-block.visible { opacity: 1; transform: translateY(0); }
+
+    .step-heading {
+      display: flex;
+      align-items: center;
+      gap: 1rem;
+      margin: 3.25rem 0 1rem;
+    }
+    .step-num-wrap {
+      flex-shrink: 0;
+      display: flex; flex-direction: column; align-items: center;
+    }
+    .step-num {
+      font-family: "JetBrains Mono", monospace;
+      font-size: .65rem; font-weight: 700;
+      letter-spacing: .1em;
+      color: var(--bg);
+      background: var(--green);
+      width: 28px; height: 28px;
+      display: grid; place-items: center;
+    }
+    h2 {
+      font-family: "Baloo 2", sans-serif;
+      font-size: 1.5rem; font-weight: 800;
+      letter-spacing: -.025em;
+      color: var(--text);
+      line-height: 1.2;
+    }
+
+    h3 {
+      font-size: 1rem; font-weight: 700;
+      color: var(--text);
+      margin: 1.75rem 0 .5rem;
+      letter-spacing: -.01em;
+    }
+
+    p {
+      color: var(--muted);
+      margin-bottom: 1rem;
+      line-height: 1.85;
+    }
+    p strong { color: var(--text); font-weight: 700; }
+    a { color: var(--green); text-decoration: none; }
+    a:hover { text-decoration: underline; }
+
+    /* ─── CODE ─── */
+    .code-wrap {
+      position: relative;
+      margin: 1rem 0 1.5rem;
+    }
+    pre {
+      background: var(--bg2);
+      border: 1px solid var(--border2);
+      padding: 1rem 1.25rem;
+      font-family: "JetBrains Mono", monospace;
+      font-size: .8rem;
+      overflow-x: auto;
+      color: var(--text);
+      line-height: 1.8;
+    }
+    .copy-btn {
+      position: absolute;
+      top: .5rem; right: .5rem;
+      font-family: "JetBrains Mono", monospace;
+      font-size: .62rem; font-weight: 700;
+      letter-spacing: .08em; text-transform: uppercase;
+      color: var(--dim);
+      background: var(--bg3);
+      border: 1px solid var(--border);
+      padding: .2rem .55rem;
+      cursor: pointer;
+      transition: color .15s, border-color .15s;
+    }
+    .copy-btn:hover { color: var(--green); border-color: var(--green); }
+    .copy-btn.copied { color: var(--green); border-color: var(--green); }
+    pre .c { color: var(--dim); }
+    pre .s { color: var(--amber); }
+    pre .k { color: var(--green); }
+    pre .f { color: var(--purple); }
+    code {
+      font-family: "JetBrains Mono", monospace;
+      font-size: .8em; color: var(--cyan);
+      background: var(--bg3);
+      padding: .1em .35em;
+      border: 1px solid var(--border);
+    }
+
+    /* ─── TERMINAL ─── */
+    .terminal {
+      background: var(--bg2);
+      border: 1px solid var(--border);
+      overflow: hidden;
+      margin: 1rem 0 1.5rem;
+      box-shadow: 0 20px 50px rgba(0,0,0,.45);
+    }
+    .terminal-bar {
+      display: flex; align-items: center; gap: .4rem;
+      padding: .55rem 1rem;
+      background: var(--bg3);
+      border-bottom: 1px solid var(--border);
+    }
+    .tb-dot { width: 9px; height: 9px; border-radius: 50%; }
+    .tb-r { background: #f87171; } .tb-y { background: #fbbf24; } .tb-g { background: #4ade80; }
+    .terminal-title {
+      font-family: "JetBrains Mono", monospace;
+      font-size: .66rem; color: var(--dim); margin-left: .4rem;
+    }
+    .terminal-body {
+      padding: 1rem 1.25rem;
+      font-family: "JetBrains Mono", monospace;
+      font-size: .82rem; line-height: 2;
+    }
+    .t-prompt { color: var(--green); font-weight: 700; }
+    .t-cmd    { color: var(--text); }
+    .t-flag   { color: var(--purple); }
+    .t-str    { color: var(--amber); }
+    .t-out    { color: var(--dim); }
+    .t-ans    { color: var(--cyan); }
+    .t-blank  { display: block; height: .3rem; }
+
+    /* ─── CALLOUT ─── */
+    .callout {
+      border: 1px solid var(--border);
+      border-left: 2px solid var(--amber);
+      background: var(--bg2);
+      padding: 1rem 1.25rem;
+      margin: 1rem 0 1.5rem;
+      font-size: .92rem;
+    }
+    .callout p { margin: 0; color: var(--muted); line-height: 1.75; }
+    .callout strong { color: var(--amber); }
+
+    /* ─── DIVIDER ─── */
+    .section-break {
+      border: none;
+      border-top: 1px solid var(--border);
+      margin: 3rem 0;
+    }
+
+    /* ─── NEXT STEPS ─── */
+    .next-steps {
+      background: var(--bg2);
+      border: 1px solid var(--border);
+      padding: 1.5rem;
+      margin-top: 3rem;
+    }
+    .next-steps-label {
+      font-family: "JetBrains Mono", monospace;
+      font-size: .65rem; font-weight: 700;
+      letter-spacing: .14em; text-transform: uppercase;
+      color: var(--muted);
+      margin-bottom: 1rem;
+    }
+    .next-steps ul { list-style: none; display: flex; flex-direction: column; gap: .6rem; }
+    .next-steps li { font-size: .95rem; color: var(--muted); display: flex; align-items: baseline; gap: .5rem; }
+    .next-steps li::before {
+      content: "→";
+      font-family: "JetBrains Mono", monospace;
+      color: var(--green); flex-shrink: 0;
+    }
+
+    /* ─── SIDEBAR TOC ─── */
+    .sidebar {
+      padding: 4.5rem 0 8rem;
+      position: sticky;
+      top: 80px;
+    }
+    .toc-label {
+      font-family: "JetBrains Mono", monospace;
+      font-size: .62rem; font-weight: 700;
+      letter-spacing: .14em; text-transform: uppercase;
+      color: var(--dim);
+      margin-bottom: 1rem;
+    }
+    .toc-list { list-style: none; display: flex; flex-direction: column; gap: 0; }
+    .toc-item a {
+      display: flex; align-items: center; gap: .6rem;
+      font-family: "JetBrains Mono", monospace;
+      font-size: .7rem; color: var(--dim);
+      padding: .4rem 0;
+      border-left: 2px solid var(--border);
+      padding-left: .75rem;
+      transition: color .15s, border-color .15s;
+      text-decoration: none;
+      line-height: 1.4;
+    }
+    .toc-item a:hover { color: var(--muted); border-color: var(--border2); }
+    .toc-item a.active { color: var(--green); border-color: var(--green); }
+    .toc-item .toc-n {
+      color: var(--green); font-weight: 700; flex-shrink: 0;
+      opacity: 0; transition: opacity .15s;
+    }
+    .toc-item a.active .toc-n { opacity: 1; }
+
+    /* ─── ANIMATIONS ─── */
+    @keyframes fadeUp {
+      to { opacity: 1; transform: translateY(0); }
+    }
+
+    /* ─── FOOTER ─── */
+    footer {
+      border-top: 1px solid var(--border);
+      padding: 1.5rem 2rem;
+      text-align: center;
+      color: var(--dim); font-size: .78rem;
+      background: var(--bg2);
+      display: flex; align-items: center; justify-content: center;
+      gap: 1.5rem; flex-wrap: wrap;
+    }
+    footer a { color: var(--dim); }
+    footer a:hover { color: var(--muted); text-decoration: none; }
+    footer .sep { color: var(--border2); }
+
+    /* ─── RESPONSIVE ─── */
+    @media (max-width: 860px) {
+      .page-wrap { grid-template-columns: 1fr; }
+      .sidebar { display: none; }
+      article { padding: 2.5rem 0 5rem; }
+    }
+    @media (max-width: 600px) {
+      nav { padding: 0 1rem; }
+      .page-wrap { padding: 0 1.25rem; }
+      h1 { font-size: 1.9rem; }
+    }
+  </style>
+</head>
+<body>
+
+<div id="progress-bar"></div>
+
+<!-- ─── NAV ─── -->
+<nav>
+  <a href="/" class="nav-logo">yaad<span class="tilde"> ~$</span></a>
+  <a href="/" class="nav-back">← yaad.knl.co.in</a>
+  <a href="https://github.com/KunalSin9h/yaad" class="nav-gh" target="_blank" rel="noopener">
+    <svg width="13" height="13" viewBox="0 0 24 24" fill="currentColor"><path d="M12 2C6.477 2 2 6.484 2 12.017c0 4.425 2.865 8.18 6.839 9.504.5.092.682-.217.682-.483 0-.237-.008-.868-.013-1.703-2.782.605-3.369-1.343-3.369-1.343-.454-1.158-1.11-1.466-1.11-1.466-.908-.62.069-.608.069-.608 1.003.07 1.531 1.032 1.531 1.032.892 1.53 2.341 1.088 2.91.832.092-.647.35-1.088.636-1.338-2.22-.253-4.555-1.113-4.555-4.951 0-1.093.39-1.988 1.029-2.688-.103-.253-.446-1.272.098-2.65 0 0 .84-.27 2.75 1.026A9.564 9.564 0 0112 6.844c.85.004 1.705.115 2.504.337 1.909-1.296 2.747-1.027 2.747-1.027.546 1.379.202 2.398.1 2.651.64.7 1.028 1.595 1.028 2.688 0 3.848-2.339 4.695-4.566 4.943.359.309.678.92.678 1.855 0 1.338-.012 2.419-.012 2.747 0 .268.18.58.688.482A10.019 10.019 0 0022 12.017C22 6.484 17.522 2 12 2z"/></svg>
+    GitHub
+  </a>
+</nav>
+
+<!-- ─── BODY ─── -->
+<div class="page-wrap">
+
+  <!-- ─── ARTICLE ─── -->
+  <article>
+
+    <div class="post-header">
+      <div class="post-meta">
+        <span class="post-tag">guide</span>
+        <span class="post-sep">·</span>
+        <span>5 min read</span>
+        <span class="post-sep">·</span>
+        <span>March 2026</span>
+      </div>
+      <h1>Get Started<br />with yaad</h1>
+      <p class="lead">
+        yaad is a CLI memory engine. One command to save, one to recall — in plain English, weeks later. This guide gets you from zero to your first memory, then wires yaad into your AI agent so it remembers things across sessions too.
+      </p>
+      <div class="tldr">
+        <div class="tldr-label">TL;DR</div>
+        <p>Install yaad, run <code>yaad add "..."</code> to save, <code>yaad ask "..."</code> to recall. Add to your agent with <code>npx skills add kunalsin9h/yaad -g</code>.</p>
+      </div>
+    </div>
+
+    <!-- STEP 1 -->
+    <div class="step-block" id="step-1">
+      <div class="step-heading">
+        <div class="step-num-wrap">
+          <div class="step-num">01</div>
+        </div>
+        <h2>Install Ollama</h2>
+      </div>
+
+      <p>yaad uses <a href="https://ollama.com" target="_blank" rel="noopener">Ollama</a> to run AI locally — for embeddings (finding memories semantically) and for answering questions. Nothing leaves your machine.</p>
+
+      <p>Install Ollama from <a href="https://ollama.com" target="_blank" rel="noopener">ollama.com</a>, then pull the two models yaad needs:</p>
+
+      <div class="code-wrap">
+        <pre><span class="c"># embeddings — used to index and search memories</span>
+ollama pull mxbai-embed-large
+
+<span class="c"># chat model — used to answer your questions</span>
+ollama pull llama3.2:3b</pre>
+        <button class="copy-btn" onclick="copyCode(this)">copy</button>
+      </div>
+
+      <p>The embedding model is fixed. The chat model is your choice — any Ollama-compatible model works. <code>llama3.2:3b</code> is fast on most hardware and good enough for recall tasks.</p>
+    </div>
+
+    <!-- STEP 2 -->
+    <div class="step-block" id="step-2">
+      <div class="step-heading">
+        <div class="step-num-wrap">
+          <div class="step-num">02</div>
+        </div>
+        <h2>Install yaad</h2>
+      </div>
+
+      <p>One-liner for Linux and macOS:</p>
+
+      <div class="code-wrap">
+        <pre><span class="k">curl</span> -fsSL https://yaad.knl.co.in/install.sh <span class="k">| bash</span></pre>
+        <button class="copy-btn" onclick="copyCode(this)">copy</button>
+      </div>
+
+      <p>This fetches the latest release from GitHub, detects your OS and arch, and installs to <code>/usr/local/bin</code> (or <code>~/.local/bin</code> if that's not writable). Verify it worked:</p>
+
+      <div class="terminal">
+        <div class="terminal-bar">
+          <div class="tb-dot tb-r"></div><div class="tb-dot tb-y"></div><div class="tb-dot tb-g"></div>
+          <span class="terminal-title">shell</span>
+        </div>
+        <div class="terminal-body">
+          <div><span class="t-prompt">❯ </span><span class="t-cmd">yaad --version</span></div>
+          <div class="t-out">  yaad v0.3.0</div>
+        </div>
+      </div>
+
+      <p>Then initialise config. This writes <code>~/.yaadrc</code> with commented defaults — you don't need to touch it to get started:</p>
+
+      <div class="code-wrap">
+        <pre>yaad config init</pre>
+        <button class="copy-btn" onclick="copyCode(this)">copy</button>
+      </div>
+    </div>
+
+    <!-- STEP 3 -->
+    <div class="step-block" id="step-3">
+      <div class="step-heading">
+        <div class="step-num-wrap">
+          <div class="step-num">03</div>
+        </div>
+        <h2>Save your first memory</h2>
+      </div>
+
+      <p>yaad has two core commands. <code>add</code> saves. <code>ask</code> recalls. That's the whole loop.</p>
+
+      <div class="terminal">
+        <div class="terminal-bar">
+          <div class="tb-dot tb-r"></div><div class="tb-dot tb-y"></div><div class="tb-dot tb-g"></div>
+          <span class="terminal-title">shell</span>
+        </div>
+        <div class="terminal-body">
+          <div><span class="t-prompt">❯ </span><span class="t-cmd">yaad add </span><span class="t-str">"staging db is postgres on port 5433, host db.internal"</span></div>
+          <div class="t-out">  saved &nbsp;[fact]</div>
+          <span class="t-blank"></span>
+          <div><span class="t-prompt">❯ </span><span class="t-cmd">yaad add </span><span class="t-str">"prod login: ssh -i ~/.ssh/id_rsa deploy@bastion.prod.internal"</span></div>
+          <div class="t-out">  saved &nbsp;[command]</div>
+          <span class="t-blank"></span>
+          <div><span class="t-prompt">❯ </span><span class="t-cmd">yaad add </span><span class="t-str">"deploy checklist: run migrations first, then restart workers, then clear cache"</span></div>
+          <div class="t-out">  saved &nbsp;[note]</div>
+        </div>
+      </div>
+
+      <p>yaad auto-detects the type (<code>fact</code>, <code>command</code>, <code>note</code>, <code>url</code>, <code>reminder</code>) and embeds the content for semantic search. Both happen concurrently in the background — the save itself is instant even if Ollama is busy.</p>
+
+      <div class="callout">
+        <p><strong>Write self-contained memories.</strong> The AI searches by meaning, not keywords. "port 5433" is hard to find later. "staging db is postgres on port 5433, host db.internal" surfaces reliably even if you ask "what's the staging database address?" three weeks later.</p>
+      </div>
+    </div>
+
+    <!-- STEP 4 -->
+    <div class="step-block" id="step-4">
+      <div class="step-heading">
+        <div class="step-num-wrap">
+          <div class="step-num">04</div>
+        </div>
+        <h2>Recall with natural language</h2>
+      </div>
+
+      <p>Ask what you want to know. You don't need to remember what you typed when saving:</p>
+
+      <div class="terminal">
+        <div class="terminal-bar">
+          <div class="tb-dot tb-r"></div><div class="tb-dot tb-y"></div><div class="tb-dot tb-g"></div>
+          <span class="terminal-title">shell</span>
+        </div>
+        <div class="terminal-body">
+          <div><span class="t-prompt">❯ </span><span class="t-cmd">yaad ask </span><span class="t-str">"how do I connect to staging?"</span></div>
+          <div class="t-ans">  The staging database is postgres on port 5433 at db.internal.</div>
+          <span class="t-blank"></span>
+          <div><span class="t-prompt">❯ </span><span class="t-cmd">yaad ask </span><span class="t-str">"what do I need to do before deploying?"</span></div>
+          <div class="t-ans">  Run migrations first, then restart workers, then clear cache.</div>
+        </div>
+      </div>
+
+      <p>Under the hood: yaad embeds your question, finds the most semantically similar memories, and passes them as context to the LLM, which synthesises an answer. It works with questions phrased differently from how you saved things.</p>
+    </div>
+
+    <!-- STEP 5 -->
+    <div class="step-block" id="step-5">
+      <div class="step-heading">
+        <div class="step-num-wrap">
+          <div class="step-num">05</div>
+        </div>
+        <h2>Set a reminder</h2>
+      </div>
+
+      <p>Reminders are memories with a <code>--remind</code> flag. yaad parses natural language time expressions:</p>
+
+      <div class="terminal">
+        <div class="terminal-bar">
+          <div class="tb-dot tb-r"></div><div class="tb-dot tb-y"></div><div class="tb-dot tb-g"></div>
+          <span class="terminal-title">shell</span>
+        </div>
+        <div class="terminal-body">
+          <div><span class="t-prompt">❯ </span><span class="t-cmd">yaad add </span><span class="t-str">"submit the PR for review"</span><span class="t-flag"> --remind </span><span class="t-str">"in 2 hours"</span></div>
+          <div class="t-out">  saved &nbsp;[reminder] · due in 2h</div>
+          <span class="t-blank"></span>
+          <div><span class="t-prompt">❯ </span><span class="t-cmd">yaad add </span><span class="t-str">"book flight tickets"</span><span class="t-flag"> --remind </span><span class="t-str">"tomorrow 9am"</span></div>
+          <div class="t-out">  saved &nbsp;[reminder] · due tomorrow 09:00</div>
+        </div>
+      </div>
+
+      <p>To surface reminders in your terminal, add one line to your shell config:</p>
+
+      <div class="code-wrap">
+        <pre><span class="c"># ~/.bashrc or ~/.zshrc</span>
+export PROMPT_COMMAND=<span class="s">"yaad check; $PROMPT_COMMAND"</span>
+
+<span class="c"># zsh only</span>
+precmd() { yaad check }</pre>
+        <button class="copy-btn" onclick="copyCode(this)">copy</button>
+      </div>
+
+      <p>When a reminder fires, yaad prints it inline on the next prompt — no background process needed.</p>
+    </div>
+
+    <hr class="section-break" />
+
+    <!-- STEP 6 -->
+    <div class="step-block" id="step-6">
+      <div class="step-heading">
+        <div class="step-num-wrap">
+          <div class="step-num">06</div>
+        </div>
+        <h2>Wire it into your AI agent</h2>
+      </div>
+
+      <p>yaad ships as an <a href="https://github.com/vercel-labs/skills" target="_blank" rel="noopener">Agent Skill</a> — a standard for giving AI agents persistent, reusable capabilities. Install once, every agent session gets memory.</p>
+
+      <div class="code-wrap">
+        <pre>npx skills add kunalsin9h/yaad <span class="f">-g</span></pre>
+        <button class="copy-btn" onclick="copyCode(this)">copy</button>
+      </div>
+
+      <p>The <code>-g</code> flag installs globally — available in every Claude Code, Cursor, or Codex session you open. Without it, the skill is scoped to the current directory.</p>
+
+      <p>Once installed, your agent gets the <code>/yaad</code> slash command:</p>
+
+      <div class="terminal">
+        <div class="terminal-bar">
+          <div class="tb-dot tb-r"></div><div class="tb-dot tb-y"></div><div class="tb-dot tb-g"></div>
+          <span class="terminal-title">agent session — claude code</span>
+        </div>
+        <div class="terminal-body">
+          <div class="t-out"><span style="color:var(--dim)">── recall ───────────────────────────</span></div>
+          <div><span class="t-prompt">❯ </span><span class="t-cmd">/yaad </span><span class="t-str">"what's the staging db setup?"</span></div>
+          <div class="t-ans">  postgres on port 5433, host db.internal</div>
+          <span class="t-blank"></span>
+          <div class="t-out"><span style="color:var(--dim)">── save ─────────────────────────────</span></div>
+          <div><span class="t-prompt">❯ </span><span class="t-cmd">/yaad add </span><span class="t-str">"nginx config lives at /etc/nginx/sites-enabled/app"</span></div>
+          <div class="t-out">  saved &nbsp;[fact]</div>
+          <span class="t-blank"></span>
+          <div class="t-out"><span style="color:var(--dim)">── remind ───────────────────────────</span></div>
+          <div><span class="t-prompt">❯ </span><span class="t-cmd">/yaad add </span><span class="t-str">"review PR #42"</span><span class="t-flag"> --remind </span><span class="t-str">"tomorrow 9am"</span></div>
+          <div class="t-out">  saved &nbsp;[reminder] · due tomorrow 09:00</div>
+        </div>
+      </div>
+
+      <p>The agent also uses yaad proactively: before searching the filesystem or asking you for context it may already have, it checks memory first. Discoveries it makes during a session get saved automatically — without being prompted.</p>
+
+      <p>Terminal and agent share the same local store. Save something in the terminal, your agent can recall it. Agent saves something, you can query it with <code>yaad ask</code>. One store, multiple access points.</p>
+
+      <div class="next-steps">
+        <div class="next-steps-label">What's next</div>
+        <ul>
+          <li><a href="https://github.com/KunalSin9h/yaad/blob/main/COMMANDS.md">Full command reference</a> — list, get, delete, config, all flags</li>
+          <li><a href="https://github.com/KunalSin9h/yaad/blob/main/REMINDERS.md">Reminder setup guide</a> — PROMPT_COMMAND and systemd daemon</li>
+          <li><a href="https://github.com/KunalSin9h/yaad/blob/main/CONFIG.md">Configuration reference</a> — swap models, set Ollama URL, notifier options</li>
+        </ul>
+      </div>
+    </div>
+
+  </article>
+
+  <!-- ─── SIDEBAR ─── -->
+  <aside class="sidebar">
+    <div class="toc-label">On this page</div>
+    <ul class="toc-list">
+      <li class="toc-item"><a href="#step-1"><span class="toc-n">01</span> Install Ollama</a></li>
+      <li class="toc-item"><a href="#step-2"><span class="toc-n">02</span> Install yaad</a></li>
+      <li class="toc-item"><a href="#step-3"><span class="toc-n">03</span> Save a memory</a></li>
+      <li class="toc-item"><a href="#step-4"><span class="toc-n">04</span> Recall</a></li>
+      <li class="toc-item"><a href="#step-5"><span class="toc-n">05</span> Reminders</a></li>
+      <li class="toc-item"><a href="#step-6"><span class="toc-n">06</span> Agent skill</a></li>
+    </ul>
+  </aside>
+
+</div>
+
+<!-- ─── FOOTER ─── -->
+<footer>
+  <a href="/">yaad.knl.co.in</a>
+  <span class="sep">·</span>
+  <a href="https://github.com/KunalSin9h/yaad" target="_blank" rel="noopener">GitHub</a>
+  <span class="sep">·</span>
+  <span>MIT License</span>
+</footer>
+
+<script>
+  // ── reading progress bar ──
+  const bar = document.getElementById('progress-bar');
+  window.addEventListener('scroll', () => {
+    const max = document.documentElement.scrollHeight - window.innerHeight;
+    bar.style.width = (window.scrollY / max * 100) + '%';
+  });
+
+  // ── step block scroll reveal ──
+  const blocks = document.querySelectorAll('.step-block');
+  const io = new IntersectionObserver(entries => {
+    entries.forEach(e => { if (e.isIntersecting) { e.target.classList.add('visible'); io.unobserve(e.target); } });
+  }, { threshold: 0.08 });
+  blocks.forEach((b, i) => {
+    b.style.transitionDelay = (i === 0 ? '0.1' : '0') + 's';
+    io.observe(b);
+  });
+
+  // ── active TOC link ──
+  const sections = document.querySelectorAll('[id^="step-"]');
+  const links = document.querySelectorAll('.toc-item a');
+  const tocIo = new IntersectionObserver(entries => {
+    entries.forEach(e => {
+      if (e.isIntersecting) {
+        links.forEach(l => l.classList.remove('active'));
+        const active = document.querySelector(`.toc-item a[href="#${e.target.id}"]`);
+        if (active) active.classList.add('active');
+      }
+    });
+  }, { rootMargin: '-30% 0px -60% 0px' });
+  sections.forEach(s => tocIo.observe(s));
+
+  // ── copy buttons ──
+  function copyCode(btn) {
+    const pre = btn.previousElementSibling;
+    navigator.clipboard.writeText(pre.innerText).then(() => {
+      btn.textContent = 'copied!';
+      btn.classList.add('copied');
+      setTimeout(() => { btn.textContent = 'copy'; btn.classList.remove('copied'); }, 1800);
+    });
+  }
+</script>
+
+</body>
+</html>
