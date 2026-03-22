@@ -94,6 +94,9 @@ func (c *Client) chat(ctx context.Context, prompt string) (string, error) {
 			{"role": "user", "content": prompt},
 		},
 		"stream": false,
+		"options": map[string]float64{
+			"temperature": 0.9,
+		},
 	}
 	b, _ := json.Marshal(payload)
 
