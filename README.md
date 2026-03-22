@@ -2,11 +2,11 @@
 
 ## yaad
 
-> Memory for your terminal.
+> A local memory engine for your terminal and your AI agents.
 
 [![Go](https://img.shields.io/badge/go-1.22+-blue)](https://go.dev) [![License: MIT](https://img.shields.io/badge/license-MIT-green)](LICENSE) [![yaad.knl.co.in](https://img.shields.io/badge/site-yaad.knl.co.in-purple)](https://yaad.knl.co.in/)
 
-You forget the staging DB port. The curl flag that fixed that weird error. The deploy steps for this service. yaad saves it — and gives it back when you ask.
+You forget the staging DB port. The curl flag that fixed that weird error. The deploy steps for this service. yaad saves it — and gives it back when you ask. Wait, not just you, your AI assistants can use it to store context across sessions!
 
 Runs entirely local via Ollama. No cloud, no accounts, no API keys.
 

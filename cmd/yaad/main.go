@@ -19,8 +19,11 @@ import (
 	"github.com/kunalsin9h/yaad/internal/app"
 	"github.com/kunalsin9h/yaad/internal/domain"
 	"github.com/kunalsin9h/yaad/internal/ports"
+	"github.com/kunalsin9h/yaad/internal/updater"
 	"github.com/spf13/cobra"
 )
+
+var version = "dev"
 
 func main() {
 	if err := run(); err != nil {
@@ -54,8 +57,9 @@ func run() error {
 	)
 
 	root := &cobra.Command{
-		Use:   "yaad",
-		Short: "AI-native memory, recall and reminder on the terminal",
+		Use:     "yaad",
+		Short:   "AI-native memory, recall and reminder on the terminal",
+		Version: version,
 		Long: `yaad — save anything from your terminal, recall it with natural language.
 
 Examples:
@@ -89,7 +93,19 @@ Examples:
 
 			memorySvc = app.NewMemoryService(db.Store, aiClient, timeparser.New())
 			reminderSvc = app.NewReminderService(db.Store, notif)
+
+			// Trigger async cache check
+			if cmd.Name() != "hidden-update-check" && cmd.Name() != "completion" {
+				updater.CheckAsync(dataDir)
+			}
+
 			return nil
+		},
+		PersistentPostRun: func(cmd *cobra.Command, args []string) {
+			// Print warning for interactive commands only
+			if cmd.Name() != "check" && cmd.Name() != "hidden-update-check" && cmd.Name() != "daemon" && cmd.Name() != "completion" {
+				updater.PrintWarning(dataDir, version)
+			}
 		},
 	}
 
@@ -109,6 +125,7 @@ Examples:
 		checkCmd(&reminderSvc),
 		daemonCmd(&reminderSvc, rc),
 		configCmd(rc, rcPath),
+		hiddenUpdateCheckCmd(),
 	)
 
 	return root.Execute()
@@ -286,6 +303,25 @@ func cleanCmd(svc **app.MemoryService) *cobra.Command {
 
 	cmd.Flags().BoolVarP(&force, "force", "y", false, "Skip confirmation prompt")
 	return cmd
+}
+
+// --- hidden updater ---
+
+func hiddenUpdateCheckCmd() *cobra.Command {
+	return &cobra.Command{
+		Use:    "hidden-update-check",
+		Hidden: true,
+		// Skip global persistent setup to avoid circular loops or opening the DB exclusively unnecessarily
+		PersistentPreRunE: func(cmd *cobra.Command, args []string) error { return nil },
+		PersistentPostRun: func(cmd *cobra.Command, args []string) {},
+		RunE: func(cmd *cobra.Command, args []string) error {
+			dataDir, err := dataDirectory()
+			if err != nil {
+				return err
+			}
+			return updater.FetchAndUpdateCache(dataDir)
+		},
+	}
 }
 
 // --- check ---
