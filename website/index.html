@@ -734,10 +734,10 @@
       <div class="terminal-body">
         <div class="t-out"><span style="color:var(--dim)">── save once ────────────────────────</span></div>
         <div><span class="t-prompt">❯ </span><span class="t-cmd">yaad add </span><span class="t-str">"claude session for db migration: 3fa2c891-7b4e....."</span></div>
-        <div class="t-out">  saved &nbsp;[fact]</div>
+        <div class="t-out">  saved</div>
         <span class="t-blank"></span>
         <div><span class="t-prompt">❯ </span><span class="t-cmd">yaad add </span><span class="t-str">"prod needs VPN + bastion-01.internal"</span></div>
-        <div class="t-out">  saved &nbsp;[note]</div>
+        <div class="t-out">  saved</div>
         <span class="t-blank"></span>
         <div class="t-out"><span style="color:var(--dim)">── recall anytime ───────────────────</span></div>
         <div><span class="t-prompt">❯ </span><span class="t-cmd">yaad ask </span><span class="t-str">"claude session for db migration?"</span></div>
@@ -767,7 +767,7 @@
         <span class="t-blank"></span>
         <div class="t-out"><span style="color:var(--dim)">── agent saves discoveries ───────────</span></div>
         <div><span class="t-prompt">❯ </span><span class="t-cmd">/yaad add </span><span class="t-str">"deploy: always run migrations first"</span></div>
-        <div class="t-out">  saved &nbsp;[note]</div>
+        <div class="t-out">  saved</div>
         <span class="t-blank"></span>
         <div><span class="t-prompt">❯ </span><span class="t-cursor"></span></div>
       </div>
@@ -863,7 +863,7 @@
         </div>
         <span class="sr-only">context</span>
         <h3>Rich metadata</h3>
-        <p>Every memory captures context, cwd, hostname, and timestamp. AI auto-detects type and tags.</p>
+        <p>Every memory captures context, cwd, hostname, and timestamp.</p>
       </div>
       <div class="feature-card c-purple">
         <div class="feature-icon" aria-hidden="true">
@@ -1019,16 +1019,15 @@ systemctl --user status yaad</pre>
       usage
     </span>
     <h2>A command for every moment.</h2>
-    <p class="section-lead">Five memory types, auto-detected by AI: <code>command</code> · <code>note</code> · <code>url</code> · <code>fact</code> · <code>reminder</code></p>
+    <p class="section-lead">Simple commands. No flags to learn.</p>
 
     <div class="commands-grid">
       <div class="cmd-card">
         <div class="cmd-name">yaad add</div>
-        <p>Save anything. Include context right in the content — AI finds it later. <code>--remind</code> schedules a terminal nudge, <code>--tag</code> for filtering.</p>
+        <p>Save anything. Include context right in the content — AI finds it later by meaning. <code>--remind</code> schedules a terminal nudge.</p>
         <pre style="margin-top:.75rem;font-size:.75rem">yaad add <span class="s">"backend infra: staging db port is 5433"</span>
 yaad add <span class="s">"submit PR for review"</span> <span class="k">--remind</span> <span class="s">"tomorrow 9am"</span>
-yaad add <span class="s">"prod login: ssh -i ~/.ssh/id_rsa user@prod"</span>
-yaad add <span class="s">"https://api.docs.com"</span> <span class="k">--tag</span> reference</pre>
+yaad add <span class="s">"prod login: ssh -i ~/.ssh/id_rsa user@prod"</span></pre>
       </div>
       <div class="cmd-card">
         <div class="cmd-name">yaad ask</div>
@@ -1039,10 +1038,8 @@ yaad ask <span class="s">"how do I log into prod?"</span></pre>
       </div>
       <div class="cmd-card">
         <div class="cmd-name">yaad list</div>
-        <p>Browse recent memories. Filter by type, tag, or show only pending reminders.</p>
+        <p>Browse recent memories. Filter by pending reminders or show all.</p>
         <pre style="margin-top:.75rem;font-size:.75rem">yaad list
-yaad list <span class="k">--type</span> reminder
-yaad list <span class="k">--tag</span> staging
 yaad list <span class="k">--remind</span>          <span class="c"># only due reminders</span></pre>
       </div>
       <div class="cmd-card">
